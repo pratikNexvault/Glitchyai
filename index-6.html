@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Lumis</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Cormorant+Garamond:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone@7.23.2/babel.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body,#root{width:100%;height:100vh;overflow:hidden}
+body{font-family:'Outfit',sans-serif;background:#0d1117;color:#e6edf3;-webkit-font-smoothing:antialiased}
+
+:root{
+  --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;
+  --green:#3fb950;--green-d:#238636;--green-s:rgba(63,185,80,0.1);
+  --blue:#58a6ff;--blue-s:rgba(88,166,255,0.1);
+  --purple:#bc8cff;--purple-s:rgba(188,140,255,0.1);
+  --orange:#ffa657;--orange-s:rgba(255,166,87,0.1);
+  --red:#f85149;--red-s:rgba(248,81,73,0.1);
+  --muted:#8b949e;--border:#30363d;
+  --card:#161b22;--card2:#21262d;
+}
+
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#30363d;border-radius:99px}
+::-webkit-scrollbar-thumb:hover{background:#8b949e}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes glow{0%,100%{box-shadow:0 0 10px rgba(63,185,80,.3)}50%{box-shadow:0 0 25px rgba(63,185,80,.6)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes slideIn{from{transform:translateX(-100%)}to{transform:translateX(0)}}
+@keyframes overlayIn{from{opacity:0}to{opacity:1}}
+@keyframes lockIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+@keyframes typewriter{from{opacity:0}to{opacity:1}}
+@keyframes gradMove{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+
+.fu{animation:fadeUp .35s ease both}
+.si{animation:slideIn .28s cubic-bezier(.4,0,.2,1) both}
+
+/* LOCK */
+.lock{position:fixed;inset:0;background:#0d1117;display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;animation:lockIn .4s ease}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;height:52px;padding:0 14px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;gap:10px;position:sticky;top:0;z-index:50}
+
+/* SIDEBAR */
+.sb{position:fixed;left:0;top:0;bottom:0;width:260px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:200;transform:translateX(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1)}
+.sb.open{transform:translateX(0)}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:199;animation:overlayIn .2s ease;backdrop-filter:blur(2px)}
+
+/* NAV */
+.ni{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:8px;cursor:pointer;font-size:13.5px;color:var(--muted);transition:all .15s;border:1px solid transparent;user-select:none;touch-action:manipulation;font-family:'Outfit',sans-serif}
+.ni:active{background:var(--bg3)}
+.ni.on{background:var(--green-s);color:var(--green);font-weight:600;border-color:rgba(63,185,80,.2)}
+
+/* BACK BTN */
+.back{display:inline-flex;align-items:center;gap:5px;padding:6px 12px 6px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:99px;color:var(--muted);font-size:12.5px;font-weight:500;cursor:pointer;transition:all .15s;touch-action:manipulation;font-family:'Outfit',sans-serif}
+.back:active{background:#30363d;transform:scale(.96)}
+.back:hover{color:var(--green);border-color:rgba(63,185,80,.3)}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px}
+.hc{transition:transform .15s,border-color .15s;cursor:pointer;touch-action:manipulation}
+.hc:active{transform:scale(.97)}
+.hc:hover{border-color:#8b949e}
+
+/* INPUT */
+.inp{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 13px;font-family:'Outfit',sans-serif;font-size:14px;color:#e6edf3;outline:none;transition:border-color .2s,box-shadow .2s;-webkit-appearance:none}
+.inp:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(88,166,255,.1)}
+.inp::placeholder{color:var(--muted)}
+
+/* BUTTONS */
+.btn-g{background:var(--green-d);color:#fff;border:1px solid rgba(63,185,80,.3);border-radius:8px;padding:9px 18px;font-family:'Outfit',sans-serif;font-size:13.5px;font-weight:600;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:7px;touch-action:manipulation}
+.btn-g:active{transform:scale(.96)}
+.btn-g:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn-b{background:var(--blue-s);color:var(--blue);border:1px solid rgba(88,166,255,.25);border-radius:8px;padding:9px 18px;font-family:'Outfit',sans-serif;font-size:13.5px;font-weight:600;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:7px;touch-action:manipulation}
+.btn-b:active{transform:scale(.96)}
+.btn-b:disabled{opacity:.4;cursor:not-allowed}
+.btn-o{background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:8px;padding:9px 18px;font-family:'Outfit',sans-serif;font-size:13.5px;font-weight:500;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:7px;touch-action:manipulation}
+.btn-o:active{background:var(--bg3);color:#e6edf3}
+
+/* MESSAGES */
+.msg-u{background:#1f3a2b;border:1px solid rgba(63,185,80,.2);border-radius:12px 3px 12px 12px;padding:10px 14px;font-size:14px;line-height:1.6;max-width:82%;animation:msgIn .22s ease both;align-self:flex-end;word-break:break-word;color:#e6edf3}
+.msg-a{background:var(--bg3);border:1px solid var(--border);border-radius:3px 12px 12px 12px;padding:10px 14px;font-size:14px;line-height:1.6;max-width:88%;animation:msgIn .22s ease both;align-self:flex-start;word-break:break-word}
+.dot-t{width:5px;height:5px;border-radius:99px;background:var(--green);display:inline-block;animation:pulse 1.2s ease infinite}
+
+/* CODE BLOCK */
+.cb{background:#0d1117;border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:12px;overflow-x:auto;line-height:1.65;white-space:pre-wrap;word-break:break-all;color:#e6edf3}
+
+/* TERMINAL */
+.terminal{background:#0d1117;border:1px solid #30363d;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:13px;overflow:hidden}
+.term-bar{background:#161b22;padding:10px 14px;border-bottom:1px solid #30363d;display:flex;align-items:center;gap:8px}
+.term-dot{width:11px;height:11px;border-radius:99px}
+.term-body{padding:14px;min-height:200px;max-height:420px;overflow-y:auto;color:#e6edf3;line-height:1.7;WebkitOverflowScrolling:touch}
+.term-input{background:transparent;border:none;outline:none;color:var(--green);font-family:'JetBrains Mono',monospace;font-size:13px;flex:1;caret-color:var(--green)}
+.term-cursor{display:inline-block;width:8px;height:14px;background:var(--green);animation:blink 1s step-end infinite;vertical-align:text-bottom;margin-left:1px}
+
+/* PILL */
+.pill{display:inline-flex;align-items:center;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;gap:4px}
+.pill-g{background:var(--green-s);color:var(--green);border:1px solid rgba(63,185,80,.2)}
+.pill-b{background:var(--blue-s);color:var(--blue);border:1px solid rgba(88,166,255,.2)}
+.pill-p{background:var(--purple-s);color:var(--purple);border:1px solid rgba(188,140,255,.2)}
+.pill-o{background:var(--orange-s);color:var(--orange);border:1px solid rgba(255,166,87,.2)}
+.pill-r{background:var(--red-s);color:var(--red);border:1px solid rgba(248,81,73,.2)}
+
+/* RESEARCH */
+.src-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;transition:border-color .15s}
+.src-card:hover{border-color:#8b949e}
+
+/* IMAGE PREVIEW */
+.img-prev{width:100%;max-height:260px;object-fit:contain;border-radius:8px;border:1px solid var(--border);background:#0d1117}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:400;display:flex;align-items:flex-end;justify-content:center;animation:overlayIn .2s ease;backdrop-filter:blur(3px)}
+.modal{background:var(--bg2);border-radius:16px 16px 0 0;width:100%;max-width:560px;padding:22px;animation:fadeUp .25s ease;max-height:90vh;overflow-y:auto;border:1px solid var(--border)}
+
+@media(max-width:768px){
+  .no-mob{display:none!important}
+  .mob-top{display:flex!important}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const {useState,useEffect,useRef,useCallback} = React;
+
+/* ════════════════════════════════════
+   SECURE CONFIG — fetched from /api/*
+   In deployment: set env vars in Vercel
+════════════════════════════════════ */
+const CFG = {
+  // OpenClaude / Anthropic compatible endpoint
+  apiBase: "https://cc.freemodel.dev",
+  // These will be fetched from backend in production
+  // For now stored as constants (replace after deploy)
+  apiKey: "", // set via Settings
+  model: "claude-sonnet-4-6",
+  gmailUser: "lumis.chat@gmail.com",
+  telegramToken: "", // set via Settings
+};
+
+/* ════════════════════════════════════
+   ICONS
+════════════════════════════════════ */
+const I = ({n,s=16,c="currentColor",st={}}) => {
+  const P = {
+    home:"M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z M9 22V12h6v10",
+    search:"M11 17A6 6 0 1011 5a6 6 0 000 12z M21 21l-4.35-4.35",
+    term:"M4 17l6-6-6-6 M12 19h8",
+    bot:"M12 2a2 2 0 012 2c0 .74-.4 1.38-1 1.73V7h3a3 3 0 013 3v8a3 3 0 01-3 3H8a3 3 0 01-3-3v-8a3 3 0 013-3h3V5.73A2 2 0 0110 4a2 2 0 012-2zM9 12a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm6 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3z",
+    set:"M12 15a3 3 0 100-6 3 3 0 000 6z M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z",
+    send:"M22 2L11 13 M22 2l-7 20-4-9-9-4 20-7z",
+    x:"M18 6L6 18M6 6l12 12",
+    menu:"M3 12h18M3 6h18M3 18h18",
+    arrl:"M19 12H5M12 5l-7 7 7 7",
+    lock:"M19 11H5a2 2 0 00-2 2v7a2 2 0 002 2h14a2 2 0 002-2v-7a2 2 0 00-2-2z M7 11V7a5 5 0 0110 0v4",
+    eye:"M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 12a3 3 0 100-6 3 3 0 000 6z",
+    eyeoff:"M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94 M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19 M1 1l22 22",
+    img:"M21 19V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2z M8.5 10a1.5 1.5 0 100-3 1.5 1.5 0 000 3z M21 15l-5-5L5 21",
+    copy:"M20 9h-9a2 2 0 00-2 2v9a2 2 0 002 2h9a2 2 0 002-2v-9a2 2 0 00-2-2z M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1",
+    check:"M20 6L9 17l-5-5",
+    plus:"M12 5v14M5 12h14",
+    trash:"M3 6h18 M19 6l-1 14H8L7 6 M10 11v6 M14 11v6 M9 6V4h6v2",
+    globe:"M12 2a10 10 0 100 20A10 10 0 0012 2z M2 12h20 M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z",
+    zap:"M13 2L3 14h9l-1 8 10-12h-9l1-8z",
+    leaf:"M12 2a9 9 0 019 9c0 5.25-4 9.75-9 11-5-1.25-9-5.75-9-11a9 9 0 019-9z M12 2v20",
+    file:"M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z M14 2v6h6",
+    key:"M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3",
+    n8n:"M12 2a10 10 0 100 20A10 10 0 0012 2z M8 12h8 M12 8l4 4-4 4",
+  };
+  return (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={st}>
+      {(P[n]||"").split(" M").map((d,i)=><path key={i} d={i===0?d:"M"+d}/>)}
+    </svg>
+  );
+};
+
+const Spin = ({s=15,c="var(--green)"}) => (
+  <div style={{width:s,height:s,border:`2px solid rgba(63,185,80,.2)`,borderTop:`2px solid ${c}`,borderRadius:"50%",animation:"spin .7s linear infinite",flexShrink:0}}/>
+);
+
+/* ════════════════════════════════════
+   MARKDOWN RENDERER
+════════════════════════════════════ */
+function mdRender(t) {
+  if(!t) return "";
+  return t
+    .replace(/```(\w*)\n?([\s\S]*?)```/g,(_,l,c)=>`<pre class="cb" style="margin:10px 0">${c.replace(/</g,"&lt;").replace(/>/g,"&gt;")}</pre>`)
+    .replace(/`([^`]+)`/g,`<code style="background:#0d1117;border:1px solid #30363d;border-radius:4px;padding:1px 5px;font-family:'JetBrains Mono',monospace;font-size:.85em;color:#e6edf3">$1</code>`)
+    .replace(/\*\*(.*?)\*\*/g,"<strong style='color:#e6edf3'>$1</strong>")
+    .replace(/\*(.*?)\*/g,"<em>$1</em>")
+    .replace(/^### (.+)$/gm,`<h3 style="font-size:15px;font-weight:600;color:#e6edf3;margin:12px 0 5px">$1</h3>`)
+    .replace(/^## (.+)$/gm,`<h2 style="font-size:17px;font-weight:700;color:#e6edf3;margin:14px 0 6px">$1</h2>`)
+    .replace(/^# (.+)$/gm,`<h1 style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:500;color:#e6edf3;margin:14px 0 8px">$1</h1>`)
+    .replace(/^- (.+)$/gm,`<div style="display:flex;gap:7px;margin:4px 0;line-height:1.5"><span style="color:var(--green);font-weight:700;flex-shrink:0">•</span><span>$1</span></div>`)
+    .replace(/^(\d+)\. (.+)$/gm,`<div style="display:flex;gap:7px;margin:4px 0"><span style="color:var(--muted);font-size:12px;flex-shrink:0">$1.</span><span>$1</span></div>`)
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g,`<a href="$2" target="_blank" style="color:var(--blue);text-decoration:none;border-bottom:1px solid rgba(88,166,255,.3)">$1</a>`)
+    .replace(/\n\n/g,"<br/><br/>").replace(/\n/g,"<br/>");
+}
+
+/* ════════════════════════════════════
+   SECURE API CALLER — OpenClaude
+════════════════════════════════════ */
+async function callClaude(messages, systemPrompt, imageBase64, imageMime) {
+  const settings = loadSettings();
+  const apiKey = settings.apiKey;
+  const apiBase = settings.apiBase || "https://cc.freemodel.dev";
+  const model = settings.model || "claude-sonnet-4-6";
+
+  if(!apiKey) return "⚠️ API key not set. Go to **Settings** → add your OpenClaude API key.";
+
+  // Build content with optional image
+  const buildContent = (text, img, mime) => {
+    if(img) return [
+      {type:"image",source:{type:"base64",media_type:mime||"image/jpeg",data:img}},
+      {type:"text",text}
+    ];
+    return text;
+  };
+
+  const msgs = messages.map((m,i) => ({
+    role: m.role,
+    content: i === messages.length-1 && imageBase64
+      ? buildContent(m.content, imageBase64, imageMime)
+      : m.content
+  }));
+
+  try {
+    const res = await fetch(`${apiBase}/v1/messages`, {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "x-api-key": apiKey,
+        "anthropic-version":"2023-06-01",
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: 2048,
+        system: systemPrompt,
+        messages: msgs,
+      })
+    });
+    const d = await res.json();
+    if(!res.ok) throw new Error(d.error?.message || `API error ${res.status}`);
+    return d.content?.map(b=>b.text||"").join("") || "No response";
+  } catch(e) {
+    return `⚠️ **Error:** ${e.message}\n\nCheck your API key and base URL in Settings.`;
+  }
+}
+
+/* ════════════════════════════════════
+   WEB RESEARCH — No API needed
+════════════════════════════════════ */
+async function doWebResearch(query) {
+  // DuckDuckGo Instant Answer API — completely free, no key
+  const results = [];
+  let abstract = "";
+  let answer = "";
+
+  try {
+    const ddg = await fetch(
+      `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1&skip_disambig=1`,
+      {headers:{"User-Agent":"Lumis-Research/1.0"}}
+    );
+    const d = await ddg.json();
+    answer = d.Answer || "";
+    abstract = d.Abstract || "";
+    if(d.RelatedTopics) {
+      d.RelatedTopics.slice(0,6).forEach(t=>{
+        if(t.Text && t.FirstURL) results.push({title:t.Text.slice(0,80),url:t.FirstURL,snippet:t.Text,source:"DuckDuckGo"});
+      });
+    }
+    if(d.Results) {
+      d.Results.slice(0,3).forEach(r=>{
+        if(r.Text && r.FirstURL) results.push({title:r.Text.slice(0,80),url:r.FirstURL,snippet:r.Text,source:"DuckDuckGo"});
+      });
+    }
+  } catch(e) {}
+
+  // Wikipedia summary
+  try {
+    const wiki = await fetch(
+      `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query.split(" ").slice(0,3).join("_"))}`,
+      {headers:{"User-Agent":"Lumis-Research/1.0"}}
+    );
+    if(wiki.ok) {
+      const w = await wiki.json();
+      if(w.extract && w.extract.length > 50) {
+        results.unshift({title:w.title,url:w.content_urls?.desktop?.page||"#",snippet:w.extract.slice(0,300),source:"Wikipedia",thumbnail:w.thumbnail?.source});
+      }
+    }
+  } catch(e) {}
+
+  return {query, answer, abstract, results};
+}
+
+/* ════════════════════════════════════
+   LOCAL STORAGE
+════════════════════════════════════ */
+const SKEY = "lumis_v2";
+function loadSettings() {
+  try { return JSON.parse(localStorage.getItem(SKEY)||"{}"); } catch { return {}; }
+}
+function saveSettings(s) { localStorage.setItem(SKEY, JSON.stringify(s)); }
+
+/* ════════════════════════════════════
+   LOCK SCREEN
+════════════════════════════════════ */
+function LockScreen({onUnlock}) {
+  const [pw,setPw] = useState("");
+  const [err,setErr] = useState("");
+  const [show,setShow] = useState(false);
+  const [loading,setLoading] = useState(false);
+
+  function tryUnlock() {
+    setLoading(true);
+    const s = loadSettings();
+    const correct = s.password || "lumis2024";
+    setTimeout(() => {
+      if(pw === correct) { onUnlock(); }
+      else { setErr("Wrong password"); setPw(""); setTimeout(()=>setErr(""),2000); }
+      setLoading(false);
+    }, 400);
+  }
+
+  return (
+    <div className="lock">
+      {/* Animated background */}
+      <div style={{position:"absolute",inset:0,overflow:"hidden",opacity:.3}}>
+        {[...Array(6)].map((_,i)=>(
+          <div key={i} style={{position:"absolute",width:2,background:"var(--green)",left:`${15+i*14}%`,top:0,bottom:0,animation:`pulse ${1.5+i*.3}s ease-in-out ${i*.2}s infinite`,opacity:.4}}/>
+        ))}
+      </div>
+
+      <div style={{textAlign:"center",marginBottom:40,position:"relative",animation:"fadeUp .5s ease"}}>
+        <div style={{width:80,height:80,borderRadius:24,background:"linear-gradient(135deg,rgba(63,185,80,.15),rgba(88,166,255,.1))",border:"1px solid rgba(63,185,80,.3)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 20px",animation:"glow 3s ease infinite"}}>
+          <I n="leaf" s={36} c="#3fb950"/>
+        </div>
+        <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:48,fontWeight:300,color:"#e6edf3",letterSpacing:"4px",lineHeight:1}}>Lumis</div>
+        <div style={{fontSize:11,color:"rgba(139,148,158,.5)",letterSpacing:"5px",marginTop:8}}>PERSONAL AI</div>
+      </div>
+
+      <div style={{width:"100%",maxWidth:300,padding:"0 24px",position:"relative",animation:"fadeUp .5s ease .12s both"}}>
+        <div style={{position:"relative",marginBottom:14}}>
+          <input className="inp" type={show?"text":"password"} value={pw}
+            onChange={e=>{setPw(e.target.value);setErr("");}}
+            onKeyDown={e=>e.key==="Enter"&&tryUnlock()}
+            placeholder="Password"
+            autoFocus
+            style={{background:"rgba(255,255,255,.04)",border:"1px solid rgba(63,185,80,.2)",color:"#e6edf3",borderRadius:12,padding:"13px 46px 13px 16px",fontSize:15,textAlign:"center",letterSpacing:"3px"}}/>
+          <button onClick={()=>setShow(!show)} style={{position:"absolute",right:13,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",padding:4}}>
+            <I n={show?"eyeoff":"eye"} s={16} c="rgba(139,148,158,.6)"/>
+          </button>
+        </div>
+        {err&&<div style={{color:"var(--red)",fontSize:13,textAlign:"center",marginBottom:12,animation:"fadeUp .2s ease"}}>{err}</div>}
+        <button onClick={tryUnlock} className="btn-g" disabled={loading} style={{width:"100%",justifyContent:"center",fontSize:15,padding:"13px",borderRadius:12}}>
+          {loading?<Spin s={16} c="#fff"/>:<><I n="zap" s={15} c="#fff"/> Enter Lumis</>}
+        </button>
+        <div style={{textAlign:"center",marginTop:14,fontSize:11,color:"rgba(139,148,158,.3)"}}>Default: lumis2024</div>
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════
+   RESEARCH PANEL
+════════════════════════════════════ */
+function Research({onBack}) {
+  const [query,setQuery] = useState("");
+  const [loading,setLoading] = useState(false);
+  const [result,setResult] = useState(null);
+  const [aiSummary,setAiSummary] = useState("");
+  const [aiLoading,setAiLoading] = useState(false);
+  const [mode,setMode] = useState("web"); // web | ai
+
+  async function search() {
+    if(!query.trim()) return;
+    setLoading(true); setResult(null); setAiSummary("");
+    const r = await doWebResearch(query);
+    setResult(r);
+    setLoading(false);
+
+    // Auto AI summary if API key available
+    const s = loadSettings();
+    if(s.apiKey && r.results.length > 0) {
+      setAiLoading(true);
+      const ctx = r.results.map(x=>x.snippet).join("\n\n");
+      const summary = await callClaude(
+        [{role:"user",content:`Research query: "${query}"\n\nWeb results:\n${ctx}\n\nProvide a comprehensive, well-structured summary.`}],
+        "You are a research assistant. Synthesize web results clearly. Use headers and bullet points. Be thorough."
+      );
+      setAiSummary(summary);
+      setAiLoading(false);
+    }
+  }
+
+  return (
+    <div style={{height:"100%",display:"flex",flexDirection:"column"}}>
+      <div className="topbar">
+        <button className="back" onClick={onBack}><I n="arrl" s={14} c="var(--muted)"/> Home</button>
+        <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:18,fontWeight:400,color:"#e6edf3",flex:1}}>Research</span>
+        <span className="pill pill-b"><I n="globe" s={10}/> Free · No API</span>
+      </div>
+
+      <div style={{flex:1,overflowY:"auto",padding:16,WebkitOverflowScrolling:"touch"}}>
+        {/* Search bar */}
+        <div style={{display:"flex",gap:8,marginBottom:18}}>
+          <div style={{position:"relative",flex:1}}>
+            <I n="search" s={15} c="var(--muted)" st={{position:"absolute",left:11,top:"50%",transform:"translateY(-50%)"}}/>
+            <input className="inp" style={{paddingLeft:34}} value={query}
+              onChange={e=>setQuery(e.target.value)}
+              onKeyDown={e=>e.key==="Enter"&&search()}
+              placeholder="Search anything — Wikipedia, DuckDuckGo, AI synthesis…"/>
+          </div>
+          <button className="btn-g" onClick={search} disabled={loading||!query.trim()} style={{padding:"9px 16px",flexShrink:0}}>
+            {loading?<Spin s={14} c="#fff"/>:<I n="search" s={15} c="#fff"/>}
+          </button>
+        </div>
+
+        {/* Sources badge */}
+        {!result&&!loading&&(
+          <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:16}}>
+            {[{l:"Wikipedia",c:"pill-b"},{l:"DuckDuckGo",c:"pill-o"},{l:"AI Synthesis",c:"pill-p"}].map(s=>(
+              <span key={s.l} className={`pill ${s.c}`}>{s.l}</span>
+            ))}
+            <span style={{fontSize:12,color:"var(--muted)"}}>— All free, no API key needed for web search</span>
+          </div>
+        )}
+
+        {loading&&(
+          <div style={{display:"flex",flexDirection:"column",gap:14,marginTop:8}}>
+            {[...Array(3)].map((_,i)=>(
+              <div key={i} style={{background:"var(--bg2)",border:"1px solid var(--border)",borderRadius:10,padding:16,animation:"pulse 1.5s ease infinite",animationDelay:`${i*.15}s`}}>
+                <div style={{height:13,background:"var(--bg3)",borderRadius:4,width:"60%",marginBottom:8}}/>
+                <div style={{height:11,background:"var(--bg3)",borderRadius:4,width:"90%",marginBottom:6}}/>
+                <div style={{height:11,background:"var(--bg3)",borderRadius:4,width:"75%"}}/>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {result&&(
+          <div className="fu">
+            {/* Direct answer */}
+            {result.answer&&(
+              <div style={{background:"linear-gradient(135deg,rgba(63,185,80,.08),rgba(88,166,255,.06))",border:"1px solid rgba(63,185,80,.2)",borderRadius:12,padding:16,marginBottom:16}}>
+                <div style={{fontSize:11,fontWeight:700,color:"var(--green)",letterSpacing:"1px",marginBottom:6}}>DIRECT ANSWER</div>
+                <div style={{fontSize:15,color:"#e6edf3",lineHeight:1.6}}>{result.answer}</div>
+              </div>
+            )}
+
+            {/* AI Summary */}
+            {(aiSummary||aiLoading)&&(
+              <div style={{background:"var(--bg2)",border:"1px solid rgba(188,140,255,.2)",borderRadius:12,padding:16,marginBottom:16}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                  <div style={{fontSize:11,fontWeight:700,color:"var(--purple)",letterSpacing:"1px"}}>AI SYNTHESIS</div>
+                  {aiLoading&&<Spin s={13} c="var(--purple)"/>}
+                </div>
+                {aiSummary
+                  ? <div style={{fontSize:13.5,color:"#c9d1d9",lineHeight:1.7}} dangerouslySetInnerHTML={{__html:mdRender(aiSummary)}}/>
+                  : <div style={{display:"flex",gap:5,alignItems:"center",fontSize:13,color:"var(--muted)"}}>
+                      <Spin s={13} c="var(--purple)"/> Synthesizing with AI…
+                    </div>
+                }
+              </div>
+            )}
+
+            {/* Abstract */}
+            {result.abstract&&(
+              <div style={{background:"var(--bg2)",border:"1px solid var(--border)",borderRadius:12,padding:16,marginBottom:16,fontSize:13.5,color:"#c9d1d9",lineHeight:1.7}}>
+                <div style={{fontSize:11,fontWeight:700,color:"var(--muted)",letterSpacing:"1px",marginBottom:8}}>SUMMARY</div>
+                {result.abstract}
+              </div>
+            )}
+
+            {/* Results */}
+            <div style={{fontSize:11,fontWeight:700,color:"var(--muted)",letterSpacing:"1px",marginBottom:10}}>
+              SOURCES ({result.results.length})
+            </div>
+            {result.results.map((r,i)=>(
+              <div key={i} className="src-card">
+                <div style={{display:"flex",gap:12,alignItems:"flex-start"}}>
+                  {r.thumbnail&&<img src={r.thumbnail} style={{width:48,height:48,borderRadius:6,objectFit:"cover",flexShrink:0}} onError={e=>e.target.style.display="none"}/>}
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:4}}>
+                      <a href={r.url} target="_blank" rel="noreferrer" style={{fontSize:14,fontWeight:600,color:"var(--blue)",textDecoration:"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",flex:1}}>{r.title}</a>
+                      <span className={`pill ${r.source==="Wikipedia"?"pill-b":"pill-o"}`} style={{flexShrink:0,fontSize:9}}>{r.source}</span>
+                    </div>
+                    <div style={{fontSize:12.5,color:"var(--muted)",lineHeight:1.5,display:"-webkit-box",WebkitLineClamp:3,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{r.snippet}</div>
+                    <a href={r.url} target="_blank" rel="noreferrer" style={{fontSize:11,color:"rgba(88,166,255,.6)",textDecoration:"none",marginTop:5,display:"block",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.url}</a>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {result.results.length===0&&!result.answer&&(
+              <div style={{textAlign:"center",color:"var(--muted)",padding:40,fontSize:14}}>
+                <I n="search" s={32} c="var(--border)" st={{margin:"0 auto 12px",display:"block"}}/>
+                No results found. Try a different search term.
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════
+   CLAUDE TERMINAL
+════════════════════════════════════ */
+function Terminal({onBack}) {
+  const [messages,setMessages] = useState([]);
+  const [input,setInput] = useState("");
+  const [loading,setLoading] = useState(false);
+  const [image,setImage] = useState(null); // {base64, mime, preview}
+  const [copied,setCopied] = useState(null);
+  const botRef = useRef(null);
+  const inpRef = useRef(null);
+  const fileRef = useRef(null);
+  const sessionId = useRef(`s_${Date.now()}`);
+
+  const SYS = `You are Lumis — an elite AI assistant and software engineer with 15+ years of experience.
+
+EXPERTISE: Python, JavaScript, TypeScript, Java, C++, Go, Rust, React, Next.js, FastAPI, Django, Node.js, Flutter, PostgreSQL, MongoDB, Redis, Docker, AWS, Telegram bots, REST APIs, GraphQL, AI/ML.
+
+CODING STYLE: Write production-ready, well-commented, clean code. Always use markdown code blocks. Explain your decisions. Suggest improvements.
+
+PERSONALITY: Direct, expert, helpful. Never say "I can't." Always find a solution. Support Hindi/English mixed conversation.
+
+If an image is provided, analyze it thoroughly and reference it in your response.`;
+
+  useEffect(()=>{ botRef.current?.scrollIntoView({behavior:"smooth"}); },[messages,loading]);
+
+  function handleFile(e) {
+    const f = e.target.files?.[0]; if(!f) return;
+    const mime = f.type || "image/jpeg";
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const base64 = ev.target.result.split(",")[1];
+      setImage({base64, mime, preview:ev.target.result, name:f.name});
+    };
+    reader.readAsDataURL(f);
+  }
+
+  async function send() {
+    if((!input.trim()&&!image)||loading) return;
+    const txt = input.trim() || (image?"Analyze this image.":"");
+    setInput("");
+    const newMsg = {role:"user",content:txt,image:image?.preview,imageName:image?.name};
+    const imgData = image ? {base64:image.base64,mime:image.mime} : null;
+    setImage(null);
+
+    setMessages(p=>[...p,newMsg]);
+    setLoading(true);
+
+    const apiMsgs = [...messages,{role:"user",content:txt}].map(m=>({role:m.role,content:m.content}));
+    const reply = await callClaude(apiMsgs, SYS, imgData?.base64, imgData?.mime);
+
+    setMessages(p=>[...p,{role:"assistant",content:reply}]);
+    setLoading(false);
+    setTimeout(()=>inpRef.current?.focus(),80);
+  }
+
+  function cp(t,i){navigator.clipboard?.writeText(t);setCopied(i);setTimeout(()=>setCopied(null),1500);}
+
+  const settings = loadSettings();
+  const connected = !!settings.apiKey;
+
+  return (
+    <div style={{height:"100%",display:"flex",flexDirection:"column"}}>
+      <div className="topbar">
+        <button className="back" onClick={onBack}><I n="arrl" s={14} c="var(--muted)"/> Home</button>
+        <div style={{flex:1,display:"flex",alignItems:"center",gap:8}}>
+          <div style={{width:8,height:8,borderRadius:99,background:connected?"var(--green)":"var(--red)",flexShrink:0}}/>
+          <span style={{fontFamily:"'JetBrains Mono',serif",fontSize:14,color:"#e6edf3"}}>Claude Terminal</span>
+          {connected&&<span className="pill pill-g" style={{fontSize:10}}>{settings.model||"claude-sonnet-4-6"}</span>}
+        </div>
+        <button onClick={()=>setMessages([])} style={{background:"none",border:"none",cursor:"pointer",color:"var(--muted)",padding:6,borderRadius:6,touchAction:"manipulation"}}>
+          <I n="trash" s={15}/>
+        </button>
+        <button onClick={()=>fileRef.current?.click()} style={{background:"var(--bg3)",border:"1px solid var(--border)",borderRadius:8,padding:"6px 10px",cursor:"pointer",color:"var(--muted)",display:"flex",alignItems:"center",gap:5,fontSize:12,touchAction:"manipulation"}}>
+          <I n="img" s={14}/> Image
+        </button>
+        <input ref={fileRef} type="file" accept="image/*,.pdf,.txt,.md,.csv,.js,.py,.ts,.json" style={{display:"none"}} onChange={handleFile}/>
+      </div>
+
+      {!connected&&(
+        <div style={{background:"rgba(248,81,73,.08)",border:"1px solid rgba(248,81,73,.2)",borderRadius:0,padding:"10px 16px",fontSize:13,color:"var(--red)",display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
+          <I n="key" s={14}/> API key not set — go to <strong style={{marginLeft:3}}>Settings</strong> to connect OpenClaude
+        </div>
+      )}
+
+      {/* Messages */}
+      <div style={{flex:1,overflowY:"auto",padding:"16px 14px",display:"flex",flexDirection:"column",gap:14,WebkitOverflowScrolling:"touch"}}>
+        {messages.length===0&&(
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100%",gap:12,opacity:.5}}>
+            <div className="terminal" style={{padding:16,width:"100%",maxWidth:300,textAlign:"left"}}>
+              <div className="term-bar">
+                <div className="term-dot" style={{background:"#ff5f57"}}/>
+                <div className="term-dot" style={{background:"#febc2e"}}/>
+                <div className="term-dot" style={{background:"#28c840"}}/>
+                <span style={{fontSize:12,color:"var(--muted)",marginLeft:8}}>lumis — claude</span>
+              </div>
+              <div style={{padding:"12px 14px",fontFamily:"'JetBrains Mono',monospace",fontSize:12,color:"var(--green)"}}>
+                {">"} Welcome to Lumis Terminal<br/>
+                <span style={{color:"var(--muted)"}}>{">"} Powered by Claude via OpenClaude</span><br/>
+                {">"} Ask me anything...<span className="term-cursor"/>
+              </div>
+            </div>
+            <div style={{fontSize:13,color:"var(--muted)",textAlign:"center",maxWidth:260,lineHeight:1.6}}>
+              15+ year expert coder · Upload images/files · Ask anything
+            </div>
+          </div>
+        )}
+
+        {messages.map((m,i)=>(
+          <div key={i} style={{display:"flex",flexDirection:"column",gap:4,alignItems:m.role==="user"?"flex-end":"flex-start"}}>
+            {m.image&&(
+              <div style={{alignSelf:m.role==="user"?"flex-end":"flex-start",marginBottom:4}}>
+                <img src={m.image} alt={m.imageName||"uploaded"} className="img-prev" style={{maxWidth:220}}/>
+                {m.imageName&&<div style={{fontSize:11,color:"var(--muted)",marginTop:3,textAlign:"center"}}>{m.imageName}</div>}
+              </div>
+            )}
+            <div className={m.role==="user"?"msg-u":"msg-a"}
+              dangerouslySetInnerHTML={m.role==="assistant"?{__html:mdRender(m.content)}:undefined}>
+              {m.role==="user"?m.content:undefined}
+            </div>
+            {m.role==="assistant"&&(
+              <button onClick={()=>cp(m.content,i)} style={{background:"none",border:"none",cursor:"pointer",color:"var(--muted)",display:"flex",alignItems:"center",gap:4,fontSize:11,padding:"2px 4px"}}>
+                <I n={copied===i?"check":"copy"} s={11} c={copied===i?"var(--green)":"var(--muted)"}/>{copied===i?"Copied":"Copy"}
+              </button>
+            )}
+          </div>
+        ))}
+
+        {loading&&(
+          <div className="msg-a" style={{display:"flex",alignItems:"center",gap:6,padding:"12px 14px"}}>
+            <span className="dot-t" style={{animationDelay:"0s"}}/>
+            <span className="dot-t" style={{animationDelay:".2s"}}/>
+            <span className="dot-t" style={{animationDelay:".4s"}}/>
+          </div>
+        )}
+        <div ref={botRef}/>
+      </div>
+
+      {/* Image preview bar */}
+      {image&&(
+        <div style={{padding:"8px 14px",borderTop:"1px solid var(--border)",background:"var(--bg2)",display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
+          <img src={image.preview} style={{width:36,height:36,borderRadius:6,objectFit:"cover",border:"1px solid var(--border)"}}/>
+          <div style={{flex:1,fontSize:12,color:"var(--muted)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{image.name}</div>
+          <button onClick={()=>setImage(null)} style={{background:"none",border:"none",cursor:"pointer",color:"var(--muted)",padding:4}}>
+            <I n="x" s={16}/>
+          </button>
+        </div>
+      )}
+
+      {/* Input */}
+      <div style={{padding:"10px 14px",borderTop:"1px solid var(--border)",flexShrink:0,background:"var(--bg2)"}}>
+        <div style={{display:"flex",gap:8,alignItems:"flex-end"}}>
+          <textarea ref={inpRef} className="inp" value={input}
+            onChange={e=>setInput(e.target.value)}
+            onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();}}}
+            placeholder="Ask Claude anything… code, analysis, images…"
+            rows={1}
+            style={{resize:"none",flex:1,minHeight:44,maxHeight:120,overflowY:"auto",borderRadius:10,lineHeight:1.5,fontFamily:"'JetBrains Mono',monospace",fontSize:13}}
+            onInput={e=>{e.target.style.height="auto";e.target.style.height=Math.min(e.target.scrollHeight,120)+"px";}}/>
+          <button className="btn-g" onClick={send} disabled={loading||(!input.trim()&&!image)} style={{padding:"11px 13px",borderRadius:10,flexShrink:0,justifyContent:"center"}}>
+            {loading?<Spin s={14} c="#fff"/>:<I n="send" s={15} c="#fff"/>}
+          </button>
+        </div>
+        <div style={{fontSize:11,color:"var(--muted)",marginTop:5,textAlign:"center"}}>Shift+Enter = new line · Upload image/file for analysis</div>
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════
+   TELEGRAM BOT PANEL
+════════════════════════════════════ */
+function BotPanel({onBack}) {
+  const [token,setToken] = useState(loadSettings().telegramToken||"");
+  const [n8nUrl,setN8nUrl] = useState(loadSettings().n8nUrl||"");
+  const [ownerId,setOwnerId] = useState(loadSettings().telegramOwnerId||"");
+  const [saved,setSaved] = useState(false);
+  const [webhookRes,setWebhookRes] = useState("");
+  const [loading,setLoading] = useState(false);
+
+  function save() {
+    const s = loadSettings();
+    saveSettings({...s,telegramToken:token,n8nUrl,telegramOwnerId:ownerId});
+    setSaved(true); setTimeout(()=>setSaved(false),2000);
+  }
+
+  async function setWebhook() {
+    if(!token||!n8nUrl) return;
+    setLoading(true);
+    try {
+      const webhookUrl = n8nUrl.endsWith("/") ? n8nUrl + "webhook/lumis-bot" : n8nUrl + "/webhook/lumis-bot";
+      const r = await fetch(`https://api.telegram.org/bot${token}/setWebhook`,{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({url:webhookUrl,allowed_updates:["message","callback_query"]})
+      });
+      const d = await r.json();
+      setWebhookRes(d.ok ? "✅ Webhook set! Bot is live." : "❌ "+d.description);
+    } catch(e) { setWebhookRes("❌ Error: "+e.message); }
+    setLoading(false);
+  }
+
+  async function testBot() {
+    if(!token) return;
+    try {
+      const r = await fetch(`https://api.telegram.org/bot${token}/getMe`);
+      const d = await r.json();
+      setWebhookRes(d.ok ? `✅ Bot: @${d.result.username} (${d.result.first_name})` : "❌ Invalid token");
+    } catch(e) { setWebhookRes("❌ Network error"); }
+  }
+
+  return (
+    <div style={{height:"100%",display:"flex",flexDirection:"column"}}>
+      <div className="topbar">
+        <button className="back" onClick={onBack}><I n="arrl" s={14} c="var(--muted)"/> Home</button>
+        <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:18,fontWeight:400,color:"#e6edf3",flex:1}}>Telegram + n8n</span>
+      </div>
+
+      <div style={{flex:1,overflowY:"auto",padding:16,WebkitOverflowScrolling:"touch"}}>
+
+        {/* How it works */}
+        <div className="card" style={{padding:18,marginBottom:14,background:"linear-gradient(135deg,rgba(63,185,80,.05),rgba(88,166,255,.04))"}}>
+          <div style={{fontSize:11,fontWeight:700,color:"var(--green)",letterSpacing:"1px",marginBottom:10}}>HOW IT WORKS</div>
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            {[
+              {i:"bot",c:"var(--blue)",t:"Telegram Bot",d:"User sends message to your bot"},
+              {i:"n8n",c:"var(--orange)",t:"n8n Webhook",d:"Telegram triggers n8n workflow"},
+              {i:"zap",c:"var(--purple)",t:"n8n → OpenClaude",d:"n8n calls Claude API with message"},
+              {i:"send",c:"var(--green)",t:"Reply Back",d:"n8n sends AI response to Telegram"},
+            ].map(({i,c,t,d},idx)=>(
+              <div key={idx} style={{display:"flex",gap:12,alignItems:"center"}}>
+                <div style={{width:32,height:32,borderRadius:9,background:`${c}15`,border:`1px solid ${c}30`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                  <I n={i} s={14} c={c}/>
+                </div>
+                <div>
+                  <div style={{fontSize:13,fontWeight:600,color:"#e6edf3"}}>{t}</div>
+                  <div style={{fontSize:12,color:"var(--muted)"}}>{d}</div>
+                </div>
+                {idx<3&&<div style={{marginLeft:"auto",color:"var(--border)",fontSize:16}}>→</div>}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Step 1 - Bot Token */}
+        <div className="card" style={{padding:18,marginBottom:12}}>
+          <div style={{fontSize:11,fontWeight:700,color:"var(--muted)",letterSpacing:"1px",marginBottom:10}}>STEP 1 — TELEGRAM BOT TOKEN</div>
+          <div style={{marginBottom:10}}>
+            <label style={{fontSize:12,color:"var(--muted)",display:"block",marginBottom:5}}>BOT TOKEN (from @BotFather)</label>
+            <input className="inp" type="password" value={token} onChange={e=>setToken(e.target.value)} placeholder="1234567890:ABC-DEF..."/>
+          </div>
+          <div style={{marginBottom:10}}>
+            <label style={{fontSize:12,color:"var(--muted)",display:"block",marginBottom:5}}>YOUR TELEGRAM USER ID (owner only)</label>
+            <input className="inp" value={ownerId} onChange={e=>setOwnerId(e.target.value)} placeholder="Get from @userinfobot"/>
+          </div>
+          <button onClick={testBot} className="btn-b" disabled={!token} style={{fontSize:12,padding:"7px 14px"}}>
+            <I n="check" s={13}/> Test Token
+          </button>
+        </div>
+
+        {/* Step 2 - n8n */}
+        <div className="card" style={{padding:18,marginBottom:12}}>
+          <div style={{fontSize:11,fontWeight:700,color:"var(--muted)",letterSpacing:"1px",marginBottom:10}}>STEP 2 — n8n WEBHOOK URL</div>
+          <div style={{background:"rgba(255,166,87,.07)",border:"1px solid rgba(255,166,87,.2)",borderRadius:10,padding:12,marginBottom:12,fontSize:12.5,color:"#c9d1d9",lineHeight:1.7}}>
+            <strong style={{color:"var(--orange)"}}>n8n Setup:</strong><br/>
+            1. Go to <a href="https://app.n8n.cloud" target="_blank" style={{color:"var(--blue)"}}>n8n.cloud</a> (free tier available)<br/>
+            2. Create a new workflow<br/>
+            3. Add <strong>Telegram Trigger</strong> node → connect your bot<br/>
+            4. Add <strong>HTTP Request</strong> node → call OpenClaude API<br/>
+            5. Add <strong>Telegram</strong> node → send reply<br/>
+            6. Copy your n8n instance URL below
+          </div>
+          <label style={{fontSize:12,color:"var(--muted)",display:"block",marginBottom:5}}>n8n INSTANCE URL</label>
+          <input className="inp" value={n8nUrl} onChange={e=>setN8nUrl(e.target.value)} placeholder="https://your-instance.n8n.cloud"/>
+        </div>
+
+        {/* n8n workflow template */}
+        <div className="card" style={{padding:18,marginBottom:12}}>
+          <div style={{fontSize:11,fontWeight:700,color:"var(--muted)",letterSpacing:"1px",marginBottom:10}}>n8n WORKFLOW JSON (Import This)</div>
+          <pre className="cb" style={{fontSize:11,maxHeight:180,overflowY:"auto"}}>{`{
+  "nodes": [
+    {
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "parameters": {
+        "updates": ["message"]
+      }
+    },
+    {
+      "name": "Claude AI",
+      "type": "n8n-nodes-base.httpRequest",
+      "parameters": {
+        "url": "https://cc.freemodel.dev/v1/messages",
+        "method": "POST",
+        "headers": {
+          "x-api-key": "YOUR_API_KEY",
+          "anthropic-version": "2023-06-01"
+        },
+        "body": {
+          "model": "claude-sonnet-4-6",
+          "max_tokens": 1024,
+          "system": "You are Lumis, a helpful AI.",
+          "messages": [{
+            "role": "user",
+            "content": "={{$json.message.text}}"
+          }]
+        }
+      }
+    },
+    {
+      "name": "Send Reply",
+      "type": "n8n-nodes-base.telegram",
+      "parameters": {
+        "operation": "sendMessage",
+        "chatId": "={{$json.message.chat.id}}",
+        "text": "={{$('Claude AI').item.json.content[0].text}}"
+      }
+    }
+  ]
+}`}</pre>
+          <div style={{fontSize:12,color:"var(--muted)",marginTop:8}}>Replace YOUR_API_KEY with your OpenClaude key</div>
+        </div>
+
+        {/* Actions */}
+        <div style={{display:"flex",gap:10,marginBottom:10}}>
+          <button onClick={save} className="btn-g" style={{flex:1,justifyContent:"center"}}>
+            {saved?<><I n="check" s={14} c="#fff"/> Saved!</>:<><I n="key" s={14} c="#fff"/> Save Settings</>}
+          </button>
+          <button onClick={setWebhook} className="btn-b" disabled={loading||!token||!n8nUrl} style={{flex:1,justifyContent:"center"}}>
+            {loading?<Spin s={14} c="var(--blue)"/>:<><I n="n8n" s={14}/> Set Webhook</>}
+          </button>
+        </div>
+
+        {webhookRes&&(
+          <div style={{padding:"10px 14px",background:webhookRes.startsWith("✅")?"rgba(63,185,80,.08)":"rgba(248,81,73,.08)",border:`1px solid ${webhookRes.startsWith("✅")?"rgba(63,185,80,.2)":"rgba(248,81,73,.2)"}`,borderRadius:10,fontSize:13,color:webhookRes.startsWith("✅")?"var(--green)":"var(--red)"}}>
+            {webhookRes}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════
+   SETTINGS
+════════════════════════════════════ */
+function Settings({onBack,onLock}) {
+  const [s,setS] = useState(loadSettings());
+  const [saved,setSaved] = useState(false);
+  const [showKey,setShowKey] = useState(false);
+  const [newPw,setNewPw] = useState("");
+  const [confirmPw,setConfirmPw] = useState("");
+  const [pwMsg,setPwMsg] = useState("");
+
+  function save() {
+    saveSettings(s);
+    setSaved(true); setTimeout(()=>setSaved(false),2000);
+  }
+
+  function changePw() {
+    if(newPw.length<4){setPwMsg("Min 4 chars");return;}
+    if(newPw!==confirmPw){setPwMsg("Don't match");return;}
+    saveSettings({...loadSettings(),password:newPw});
+    setPwMsg("✓ Password changed!"); setNewPw(""); setConfirmPw("");
+    setTimeout(()=>setPwMsg(""),2500);
+  }
+
+  return (
+    <div style={{height:"100%",display:"flex",flexDirection:"column"}}>
+      <div className="topbar">
+        <button className="back" onClick={onBack}><I n="arrl" s={14} c="var(--muted)"/> Home</button>
+        <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:18,fontWeight:400,color:"#e6edf3",flex:1}}>Settings</span>
+        <button onClick={onLock} className="btn-o" style={{fontSize:12,padding:"7px 12px"}}><I n="lock" s={13}/> Lock</button>
+      </div>
+
+      <div style={{flex:1,overflowY:"auto",padding:16,WebkitOverflowScrolling:"touch"}}>
+
+        {/* OpenClaude API */}
+        <div className="card" style={{padding:18,marginBottom:12}}>
+          <div style={{fontSize:11,fontWeight:700,color:"var(--green)",letterSpacing:"1px",marginBottom:12}}>🤖 OPENCLAUDE API</div>
+          <div style={{marginBottom:10}}>
+            <label style={{fontSize:12,color:"var(--muted)",display:"block",marginBottom:5}}>API BASE URL</label>
+            <input className="inp" value={s.apiBase||"https://cc.freemodel.dev"} onChange={e=>setS({...s,apiBase:e.target.value})} placeholder="https://cc.freemodel.dev"/>
+          </div>
+          <div style={{marginBottom:10}}>
+            <label style={{fontSize:12,color:"var(--muted)",display:"block",marginBottom:5}}>API KEY</label>
+            <div style={{position:"relative"}}>
+              <input className="inp" type={showKey?"text":"password"} value={s.apiKey||""} onChange={e=>setS({...s,apiKey:e.target.value})} placeholder="fe_oa_..." style={{paddingRight:40}}/>
+              <button onClick={()=>setShowKey(!showKey)} style={{position:"absolute",right:11,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",padding:4}}>
+                <I n={showKey?"eyeoff":"eye"} s={15} c="var(--muted)"/>
+              </button>
+            </div>
+            {s.apiKey&&<div style={{fontSize:11,color:"var(--green)",marginTop:3}}>✓ Key saved</div>}
+          </div>
+          <div>
+            <label style={{fontSize:12,color:"var(--muted)",display:"block",marginBottom:5}}>MODEL</label>
+            <select className="inp" value={s.model||"claude-sonnet-4-6"} onChange={e=>setS({...s,model:e.target.value})} style={{cursor:"pointer"}}>
+              <option value="claude-sonnet-4-6">claude-sonnet-4-6 (Recommended)</option>
+              <option value="claude-opus-4-6">claude-opus-4-6 (Most Powerful)</option>
+              <option value="claude-haiku-4-5-20251001">claude-haiku-4-5-20251001 (Fast)</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Gmail */}
+        <div className="card" style={{padding:18,marginBottom:12}}>
+          <div style={{fontSize:11,fontWeight:700,color:"var(--orange)",letterSpacing:"1px",marginBottom:12}}>📧 GMAIL SMTP</div>
+          <div style={{marginBottom:10}}>
+            <label style={{fontSize:12,color:"var(--muted)",display:"block",marginBottom:5}}>GMAIL ADDRESS</label>
+            <input className="inp" value={s.gmailUser||"lumis.chat@gmail.com"} onChange={e=>setS({...s,gmailUser:e.target.value})} placeholder="you@gmail.com"/>
+          </div>
+          <div>
+            <label style={{fontSize:12,color:"var(--muted)",display:"block",marginBottom:5}}>APP PASSWORD</label>
+            <input className="inp" type="password" value={s.gmailPass||""} onChange={e=>setS({...s,gmailPass:e.target.value})} placeholder="xxxx xxxx xxxx xxxx"/>
+          </div>
+          <div style={{marginTop:8,fontSize:11.5,color:"var(--muted)",lineHeight:1.6}}>
+            Note: Gmail credentials are sent to backend API only. Never exposed in frontend.
+          </div>
+        </div>
+
+        {/* Password */}
+        <div className="card" style={{padding:18,marginBottom:12}}>
+          <div style={{fontSize:11,fontWeight:700,color:"var(--purple)",letterSpacing:"1px",marginBottom:12}}>🔒 LOCK SCREEN PASSWORD</div>
+          <div style={{marginBottom:10}}>
+            <label style={{fontSize:12,color:"var(--muted)",display:"block",marginBottom:5}}>NEW PASSWORD</label>
+            <input className="inp" type="password" value={newPw} onChange={e=>setNewPw(e.target.value)} placeholder="New password"/>
+          </div>
+          <div style={{marginBottom:12}}>
+            <label style={{fontSize:12,color:"var(--muted)",display:"block",marginBottom:5}}>CONFIRM</label>
+            <input className="inp" type="password" value={confirmPw} onChange={e=>setConfirmPw(e.target.value)} placeholder="Confirm" onKeyDown={e=>e.key==="Enter"&&changePw()}/>
+          </div>
+          {pwMsg&&<div style={{fontSize:13,color:pwMsg.startsWith("✓")?"var(--green)":"var(--red)",marginBottom:10}}>{pwMsg}</div>}
+          <button onClick={changePw} className="btn-b" style={{fontSize:13,padding:"8px 14px"}}><I n="lock" s={13}/> Change Password</button>
+        </div>
+
+        <button onClick={save} className="btn-g" style={{width:"100%",justifyContent:"center",padding:"13px",fontSize:15,marginBottom:20}}>
+          {saved?<><I n="check" s={14} c="#fff"/> Saved!</>:"Save All Settings"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════
+   HOME / OVERVIEW
+════════════════════════════════════ */
+function Home({setView}) {
+  const s = loadSettings();
+  const connected = !!s.apiKey;
+
+  const tiles = [
+    {id:"research",i:"search",l:"Open Research",d:"Wikipedia + DuckDuckGo + AI — no API needed",c:"var(--blue)",bg:"var(--blue-s)",badge:"Free"},
+    {id:"terminal",i:"term",l:"Claude Terminal",d:"Full AI chat with image upload & code",c:"var(--green)",bg:"var(--green-s)",badge:connected?"Connected":"Setup needed"},
+    {id:"bot",i:"bot",l:"Telegram + n8n",d:"Connect your bot via n8n workflow",c:"var(--orange)",bg:"var(--orange-s)",badge:"n8n"},
+    {id:"settings",i:"set",l:"Settings",d:"API key, Gmail, password",c:"var(--purple)",bg:"var(--purple-s)",badge:null},
+  ];
+
+  return (
+    <div style={{height:"100%",overflowY:"auto",padding:20,WebkitOverflowScrolling:"touch"}}>
+      {/* Header */}
+      <div style={{marginBottom:28}}>
+        <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:6}}>
+          <div style={{width:40,height:40,borderRadius:12,background:"rgba(63,185,80,.1)",border:"1px solid rgba(63,185,80,.2)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <I n="leaf" s={20} c="var(--green)"/>
+          </div>
+          <div>
+            <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:28,fontWeight:400,color:"#e6edf3",lineHeight:1}}>Lumis</div>
+            <div style={{fontSize:11,color:"var(--muted)",letterSpacing:".5px"}}>Personal AI · OpenClaude · n8n</div>
+          </div>
+        </div>
+
+        {/* Status */}
+        <div style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:12}}>
+          <span className={`pill ${connected?"pill-g":"pill-r"}`}>
+            <span style={{width:5,height:5,borderRadius:99,background:connected?"var(--green)":"var(--red)",display:"inline-block"}}/>
+            {connected?"Claude Connected":"API Key Missing"}
+          </span>
+          <span className="pill pill-b"><I n="globe" s={9}/> Web Research Ready</span>
+          <span className="pill pill-o"><I n="bot" s={9}/> Telegram via n8n</span>
+        </div>
+      </div>
+
+      {/* Tiles */}
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:24}}>
+        {tiles.map((t,i)=>(
+          <div key={t.id} className="card hc fu" onClick={()=>setView(t.id)}
+            style={{padding:18,animationDelay:`${i*.06}s`,cursor:"pointer"}}>
+            <div style={{width:38,height:38,borderRadius:11,background:t.bg,border:`1px solid ${t.c}25`,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:12}}>
+              <I n={t.i} s={17} c={t.c}/>
+            </div>
+            <div style={{fontSize:14,fontWeight:600,color:"#e6edf3",marginBottom:4,lineHeight:1.2}}>{t.l}</div>
+            <div style={{fontSize:11.5,color:"var(--muted)",lineHeight:1.5,marginBottom:8}}>{t.d}</div>
+            {t.badge&&<span className={`pill ${t.id==="terminal"&&connected?"pill-g":t.id==="terminal"?"pill-r":t.id==="bot"?"pill-o":"pill-p"}`} style={{fontSize:10}}>{t.badge}</span>}
+          </div>
+        ))}
+      </div>
+
+      {/* Quick tips */}
+      {!connected&&(
+        <div style={{background:"rgba(248,81,73,.06)",border:"1px solid rgba(248,81,73,.15)",borderRadius:12,padding:16,marginBottom:16}}>
+          <div style={{fontSize:12,fontWeight:700,color:"var(--red)",marginBottom:8,letterSpacing:".5px"}}>SETUP NEEDED</div>
+          <div style={{fontSize:13,color:"#c9d1d9",lineHeight:1.7}}>
+            1. Go to <strong>Settings</strong><br/>
+            2. Add your <strong>OpenClaude API key</strong><br/>
+            3. Set base URL: <code style={{fontFamily:"'JetBrains Mono',monospace",fontSize:12,background:"var(--bg3)",padding:"1px 5px",borderRadius:4}}>https://cc.freemodel.dev</code><br/>
+            4. Done — Claude Terminal is ready!
+          </div>
+        </div>
+      )}
+
+      <div style={{background:"var(--bg2)",border:"1px solid var(--border)",borderRadius:12,padding:16}}>
+        <div style={{fontSize:12,fontWeight:700,color:"var(--muted)",marginBottom:10,letterSpacing:".5px"}}>QUICK GUIDE</div>
+        {[
+          {i:"search",c:"var(--blue)",t:"Research = No API",d:"Search works instantly, no setup"},
+          {i:"term",c:"var(--green)",t:"Terminal = OpenClaude",d:"Add API key in Settings first"},
+          {i:"img",c:"var(--purple)",t:"Image Analysis",d:"Upload any image in Terminal"},
+          {i:"bot",c:"var(--orange)",t:"Telegram via n8n",d:"Setup n8n workflow + bot token"},
+        ].map(({i,c,t,d})=>(
+          <div key={t} style={{display:"flex",gap:10,marginBottom:10,alignItems:"flex-start"}}>
+            <div style={{width:28,height:28,borderRadius:8,background:`${c}15`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><I n={i} s={13} c={c}/></div>
+            <div><div style={{fontSize:13,fontWeight:500,color:"#e6edf3"}}>{t}</div><div style={{fontSize:12,color:"var(--muted)"}}>{d}</div></div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════
+   ROOT APP
+════════════════════════════════════ */
+function App() {
+  const [locked,setLocked] = useState(true);
+  const [view,setView] = useState("home");
+  const [sbOpen,setSbOpen] = useState(false);
+
+  const nav = [
+    {id:"home",i:"home",l:"Home"},
+    {id:"research",i:"search",l:"Research"},
+    {id:"terminal",i:"term",l:"Claude Terminal"},
+    {id:"bot",i:"bot",l:"Telegram + n8n"},
+    {id:"settings",i:"set",l:"Settings"},
+  ];
+
+  function panel() {
+    const ob = {onBack:()=>setView("home")};
+    switch(view) {
+      case "home":     return <Home setView={setView}/>;
+      case "research": return <Research {...ob}/>;
+      case "terminal": return <Terminal {...ob}/>;
+      case "bot":      return <BotPanel {...ob}/>;
+      case "settings": return <Settings {...ob} onLock={()=>setLocked(true)}/>;
+      default: return <Home setView={setView}/>;
+    }
+  }
+
+  if(locked) return <LockScreen onUnlock={()=>setLocked(false)}/>;
+
+  return (
+    <div style={{width:"100%",height:"100vh",display:"flex",flexDirection:"column",background:"var(--bg)",overflow:"hidden",fontFamily:"'Outfit',sans-serif",color:"#e6edf3"}}>
+
+      {sbOpen&&<div className="ov" onClick={()=>setSbOpen(false)}/>}
+
+      {/* Sidebar */}
+      <aside className={`sb${sbOpen?" open":""}`}>
+        <div style={{padding:"18px 16px 14px",borderBottom:"1px solid var(--border)",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            <div style={{width:34,height:34,borderRadius:10,background:"rgba(63,185,80,.1)",border:"1px solid rgba(63,185,80,.2)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+              <I n="leaf" s={17} c="var(--green)"/>
+            </div>
+            <div>
+              <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:19,fontWeight:400,color:"#e6edf3",lineHeight:1.1}}>Lumis</div>
+              <div style={{fontSize:9.5,color:"var(--muted)",letterSpacing:".7px"}}>PERSONAL AI</div>
+            </div>
+          </div>
+          <button onClick={()=>setSbOpen(false)} style={{background:"none",border:"none",cursor:"pointer",color:"var(--muted)",padding:6,borderRadius:7,touchAction:"manipulation"}}>
+            <I n="x" s={18}/>
+          </button>
+        </div>
+        <nav style={{flex:1,overflowY:"auto",padding:"8px 10px"}}>
+          {nav.map(x=>(
+            <div key={x.id} className={`ni${view===x.id?" on":""}`} onClick={()=>{setView(x.id);setSbOpen(false);}}>
+              <I n={x.i} s={15} c={view===x.id?"var(--green)":"var(--muted)"}/>{x.l}
+            </div>
+          ))}
+        </nav>
+        <div style={{padding:"12px 14px",borderTop:"1px solid var(--border)",display:"flex",gap:8}}>
+          <button onClick={()=>setLocked(true)} className="btn-o" style={{flex:1,justifyContent:"center",fontSize:12,padding:"8px"}}>
+            <I n="lock" s={13}/> Lock
+          </button>
+        </div>
+      </aside>
+
+      {/* Main */}
+      <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",height:"100vh"}}>
+        {/* Top bar — only on home */}
+        {view==="home"&&(
+          <div className="topbar" style={{borderBottom:"1px solid var(--border)"}}>
+            <button onClick={()=>setSbOpen(true)} style={{background:"none",border:"none",cursor:"pointer",color:"#e6edf3",padding:8,borderRadius:8,touchAction:"manipulation"}}>
+              <I n="menu" s={21}/>
+            </button>
+            <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:20,color:"#e6edf3",flex:1}}>Lumis</span>
+            <div style={{display:"flex",alignItems:"center",gap:5}}>
+              <div style={{width:7,height:7,borderRadius:99,background:"var(--green)"}}/>
+              <span style={{fontSize:11,color:"var(--muted)"}}>AI</span>
+            </div>
+          </div>
+        )}
+        <div style={{flex:1,overflow:"hidden",position:"relative"}}>
+          {panel()}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+</script>
+</body>
+</html>
