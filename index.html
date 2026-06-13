@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Lumis</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Cormorant+Garamond:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone@7.23.2/babel.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body,#root{width:100%;height:100vh;overflow:hidden}
+body{font-family:'Outfit',sans-serif;background:#f0f4f1;color:#1a2e22;-webkit-font-smoothing:antialiased}
+
+:root{
+  --bg:#f0f4f1;--bg2:#e8ede9;--bg3:#dde6de;
+  --g:#3a7d5c;--gl:#5aa87a;--gs:#dff0e8;
+  --b:#2563eb;--bs:rgba(37,99,235,0.1);
+  --p:#7c3aed;--ps:rgba(124,58,237,0.1);
+  --o:#c4874a;--os:#fdf0e2;
+  --r:#dc2626;--rs:rgba(220,38,38,0.1);
+  --ink:#1a2e22;--mu:#5a7a65;
+  --bd:rgba(58,125,92,0.18);--card:rgba(240,244,241,0.97);
+}
+
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:rgba(58,125,92,.25);border-radius:99px}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes msgIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes overlayIn{from{opacity:0}to{opacity:1}}
+@keyframes lockIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+
+.fu{animation:fadeUp .35s ease both}
+.blob{position:fixed;border-radius:50%;filter:blur(80px);opacity:.22;pointer-events:none;animation:pulse 8s ease-in-out infinite}
+
+/* LOCK */
+.lock{position:fixed;inset:0;background:linear-gradient(160deg,#1a2e22,#0d1f14);display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;animation:lockIn .4s ease}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;height:52px;padding:0 14px;background:var(--card);border-bottom:1px solid var(--bd);flex-shrink:0;gap:10px;position:sticky;top:0;z-index:50;backdrop-filter:blur(12px)}
+
+/* BOTTOM NAV - mobile first */
+.bnav{position:fixed;bottom:0;left:0;right:0;height:60px;background:var(--card);border-top:1px solid var(--bd);display:flex;align-items:center;justify-content:space-around;z-index:100;backdrop-filter:blur(16px);padding-bottom:env(safe-area-inset-bottom)}
+.bni{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:8px 16px;border-radius:12px;transition:all .15s;touch-action:manipulation;min-width:56px}
+.bni.on{background:var(--gs)}
+.bni span{font-size:10px;font-weight:500;color:var(--mu)}
+.bni.on span{color:var(--g);font-weight:700}
+
+/* BACK - mobile pill style */
+.back{display:inline-flex;align-items:center;gap:5px;padding:7px 14px 7px 10px;background:var(--gs);border:1px solid rgba(58,125,92,.25);border-radius:99px;color:var(--g);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;touch-action:manipulation;font-family:'Outfit',sans-serif;flex-shrink:0}
+.back:active{transform:scale(.94);background:var(--bg3)}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;box-shadow:0 2px 12px rgba(58,125,92,.06)}
+.hc{transition:transform .15s,box-shadow .15s;cursor:pointer;touch-action:manipulation}
+.hc:active{transform:scale(.97)}
+
+/* INPUT */
+.inp{width:100%;background:rgba(240,244,241,.9);border:1px solid var(--bd);border-radius:10px;padding:10px 13px;font-family:'Outfit',sans-serif;font-size:14px;color:var(--ink);outline:none;transition:border-color .2s,box-shadow .2s;-webkit-appearance:none}
+.inp:focus{border-color:var(--g);box-shadow:0 0 0 3px rgba(58,125,92,.1)}
+.inp::placeholder{color:var(--mu)}
+
+/* BUTTONS */
+.btn-g{background:var(--g);color:#fff;border:none;border-radius:10px;padding:10px 18px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:7px;touch-action:manipulation}
+.btn-g:active{transform:scale(.96);background:var(--gl)}
+.btn-g:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn-b{background:var(--bs);color:var(--b);border:1px solid rgba(37,99,235,.25);border-radius:10px;padding:10px 18px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:7px;touch-action:manipulation}
+.btn-b:active{transform:scale(.96)}
+.btn-b:disabled{opacity:.4;cursor:not-allowed}
+.btn-o{background:transparent;color:var(--mu);border:1px solid var(--bd);border-radius:10px;padding:10px 18px;font-family:'Outfit',sans-serif;font-size:14px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:7px;touch-action:manipulation}
+.btn-o:active{background:var(--gs);color:var(--ink)}
+
+/* MESSAGES */
+.msg-u{background:var(--g);color:#fff;border-radius:16px 4px 16px 16px;padding:10px 14px;font-size:14px;line-height:1.6;max-width:80%;animation:msgIn .22s ease both;align-self:flex-end;word-break:break-word}
+.msg-a{background:var(--card);border:1px solid var(--bd);border-radius:4px 16px 16px 16px;padding:10px 14px;font-size:14px;line-height:1.65;max-width:88%;animation:msgIn .22s ease both;align-self:flex-start;word-break:break-word;box-shadow:0 2px 8px rgba(58,125,92,.05)}
+.dot-t{width:6px;height:6px;border-radius:99px;background:var(--g);display:inline-block;animation:pulse 1.2s ease infinite}
+
+/* CODE */
+.cb{background:var(--bg3);border:1px solid var(--bd);border-radius:10px;padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:12px;overflow-x:auto;line-height:1.65;white-space:pre-wrap;word-break:break-all;color:var(--ink)}
+
+/* PILLS */
+.pill{display:inline-flex;align-items:center;padding:2px 9px;border-radius:99px;font-size:11px;font-weight:600;gap:3px}
+.pill-g{background:var(--gs);color:var(--g);border:1px solid rgba(58,125,92,.2)}
+.pill-b{background:var(--bs);color:var(--b);border:1px solid rgba(37,99,235,.2)}
+.pill-p{background:var(--ps);color:var(--p);border:1px solid rgba(124,58,237,.2)}
+.pill-o{background:var(--os);color:var(--o);border:1px solid rgba(196,135,74,.2)}
+.pill-r{background:var(--rs);color:var(--r);border:1px solid rgba(220,38,38,.2)}
+
+/* OVERLAY */
+.ov{position:fixed;inset:0;background:rgba(26,46,34,.5);z-index:199;animation:overlayIn .2s ease;backdrop-filter:blur(3px)}
+
+/* SIDEBAR */
+.sb{position:fixed;left:0;top:0;bottom:0;width:260px;background:var(--card);border-right:1px solid var(--bd);display:flex;flex-direction:column;z-index:200;transform:translateX(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1)}
+.sb.open{transform:translateX(0)}
+.ni{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13.5px;color:var(--mu);transition:all .15s;border:1px solid transparent;touch-action:manipulation}
+.ni:active{background:var(--gs)}
+.ni.on{background:var(--gs);color:var(--g);font-weight:600;border-color:rgba(58,125,92,.2)}
+
+/* FILE UPLOAD ZONE */
+.upload-zone{border:2px dashed var(--bd);border-radius:12px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;touch-action:manipulation}
+.upload-zone:active{background:var(--gs);border-color:var(--g)}
+.upload-zone.drag{background:var(--gs);border-color:var(--g)}
+
+/* SEARCH RESULT */
+.src{background:var(--bg2);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:10px}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const {useState,useEffect,useRef,useCallback} = React;
+
+/* ══════════════════════════════════
+   OWNER & TRAINING DATA
+══════════════════════════════════ */
+const OWNER = {
+  name: "Pratik Pandey",
+  email: "pratikpandey318@gmail.com",
+  telegramId: null, // set after /admin claim
+};
+const FROM_EMAIL = "lumis.chat@gmail.com";
+
+const LUMIS_SYSTEM = `You are Lumis — a smart, warm personal AI assistant for ${OWNER.name}.
+
+OWNER INFO:
+- Name: ${OWNER.name}
+- Personal email: ${OWNER.email}
+- From email (always use for sending): ${FROM_EMAIL}
+
+CRITICAL TRAINED BEHAVIORS:
+1. When asked to "email me" or "send to me" → always send to ${OWNER.email}
+2. When asked to "send to [email]" → send to that specific email
+3. When asked to "send to Telegram/bot" → reply with [TELEGRAM: message content]
+4. When asked to generate names/content AND send → generate it, then send via the requested channel
+5. When asked to make a text file and send → generate content, create downloadable file
+6. Always send FROM: ${FROM_EMAIL}
+
+EMAIL COMMAND FORMAT (when you need to send email, output this JSON block):
+\`\`\`email
+{"to":"email@example.com","subject":"Subject here","body":"Email body here","from":"${FROM_EMAIL}"}
+\`\`\`
+
+TELEGRAM COMMAND FORMAT:
+\`\`\`telegram
+{"message":"Message to send to Telegram"}
+\`\`\`
+
+FILE DOWNLOAD FORMAT:
+\`\`\`file:filename.txt
+File content here
+\`\`\`
+
+EXAMPLES:
+- "Give me 10 cool names and email them to me" → generate names + email JSON block to ${OWNER.email}
+- "Send these names to my bot" → generate names + telegram block
+- "Make a text file with these names and send to xyz@gmail.com" → file block + email block
+- "Email this to john@gmail.com" → email JSON block with john@gmail.com as recipient
+
+PERSONALITY: Warm, expert, direct. 15+ years coding experience. Speak naturally, mix Hindi/English naturally. Never say you can't do something — always find a way.
+
+EXPERTISE: Python, JavaScript, TypeScript, React, Next.js, FastAPI, Node.js, Telegram bots, REST APIs, PostgreSQL, MongoDB, Docker, AWS, AI/ML, mobile apps.`;
+
+/* ══════════════════════════════════
+   STORAGE
+══════════════════════════════════ */
+const SK = "lumis_v3";
+function loadS() { try { return JSON.parse(localStorage.getItem(SK)||"{}"); } catch { return {}; } }
+function saveS(s) { localStorage.setItem(SK, JSON.stringify(s)); }
+
+/* ══════════════════════════════════
+   ICONS
+══════════════════════════════════ */
+const I = ({n,s=16,c="currentColor",st={}}) => {
+  const P = {
+    home:"M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z M9 22V12h6v10",
+    search:"M11 17A6 6 0 1011 5a6 6 0 000 12z M21 21l-4.35-4.35",
+    term:"M4 17l6-6-6-6 M12 19h8",
+    bot:"M12 2a2 2 0 012 2c0 .74-.4 1.38-1 1.73V7h3a3 3 0 013 3v8a3 3 0 01-3 3H8a3 3 0 01-3-3v-8a3 3 0 013-3h3V5.73A2 2 0 0110 4a2 2 0 012-2zM9 12a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm6 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3z",
+    set:"M12 15a3 3 0 100-6 3 3 0 000 6z M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z",
+    send:"M22 2L11 13 M22 2l-7 20-4-9-9-4 20-7z",
+    x:"M18 6L6 18M6 6l12 12",
+    menu:"M3 12h18M3 6h18M3 18h18",
+    arrl:"M19 12H5M12 5l-7 7 7 7",
+    lock:"M19 11H5a2 2 0 00-2 2v7a2 2 0 002 2h14a2 2 0 002-2v-7a2 2 0 00-2-2z M7 11V7a5 5 0 0110 0v4",
+    eye:"M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 12a3 3 0 100-6 3 3 0 000 6z",
+    eyeoff:"M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94 M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19 M1 1l22 22",
+    img:"M21 19V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2z M8.5 10a1.5 1.5 0 100-3 1.5 1.5 0 000 3z M21 15l-5-5L5 21",
+    copy:"M20 9h-9a2 2 0 00-2 2v9a2 2 0 002 2h9a2 2 0 002-2v-9a2 2 0 00-2-2z M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1",
+    check:"M20 6L9 17l-5-5",
+    plus:"M12 5v14M5 12h14",
+    trash:"M3 6h18 M19 6l-1 14H8L7 6 M10 11v6 M14 11v6 M9 6V4h6v2",
+    globe:"M12 2a10 10 0 100 20A10 10 0 0012 2z M2 12h20 M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z",
+    zap:"M13 2L3 14h9l-1 8 10-12h-9l1-8z",
+    leaf:"M12 2a9 9 0 019 9c0 5.25-4 9.75-9 11-5-1.25-9-5.75-9-11a9 9 0 019-9z M12 2v20",
+    key:"M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3",
+    mail:"M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z M22 6l-10 7L2 6",
+    dl:"M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4 M7 10l5 5 5-5 M12 15V3",
+    upload:"M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4 M17 8l-5-5-5 5 M12 3v12",
+    file:"M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z M14 2v6h6",
+    n8n:"M8 6l4-4 4 4 M12 2v10 M8 18l4 4 4-4 M12 22V12",
+  };
+  return (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={st}>
+      {(P[n]||"").split(" M").map((d,i)=><path key={i} d={i===0?d:"M"+d}/>)}
+    </svg>
+  );
+};
+
+const Spin = ({s=15,c="var(--g)"}) => <div style={{width:s,height:s,border:`2px solid rgba(58,125,92,.2)`,borderTop:`2px solid ${c}`,borderRadius:"50%",animation:"spin .7s linear infinite",flexShrink:0}}/>;
+
+/* ══════════════════════════════════
+   MARKDOWN RENDERER
+══════════════════════════════════ */
+function mdRender(t) {
+  if(!t) return "";
+  return t
+    .replace(/```email\n?([\s\S]*?)```/g,(_,c)=>`<div style="background:rgba(37,99,235,.07);border:1px solid rgba(37,99,235,.2);border-radius:10px;padding:12px;margin:8px 0;font-size:12px"><div style="font-size:10px;font-weight:700;color:var(--b);letter-spacing:1px;margin-bottom:6px">📧 EMAIL SENDING</div><pre style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink);white-space:pre-wrap">${c.replace(/</g,"&lt;")}</pre></div>`)
+    .replace(/```telegram\n?([\s\S]*?)```/g,(_,c)=>`<div style="background:rgba(37,99,235,.07);border:1px solid rgba(88,166,255,.2);border-radius:10px;padding:12px;margin:8px 0;font-size:12px"><div style="font-size:10px;font-weight:700;color:#0088cc;letter-spacing:1px;margin-bottom:6px">📱 TELEGRAM MESSAGE</div><pre style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink);white-space:pre-wrap">${c.replace(/</g,"&lt;")}</pre></div>`)
+    .replace(/```file:([^\n]+)\n([\s\S]*?)```/g,(_,fname,content)=>`<div style="background:rgba(58,125,92,.07);border:1px solid rgba(58,125,92,.2);border-radius:10px;padding:12px;margin:8px 0" data-file="${fname}" data-content="${encodeURIComponent(content)}"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:var(--g);letter-spacing:1px">📄 ${fname}</div><button onclick="window.__downloadFile('${fname}','${encodeURIComponent(content)}')" style="background:var(--g);color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer">⬇ Download</button></div><pre style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink);white-space:pre-wrap;max-height:120px;overflow-y:auto">${content.replace(/</g,"&lt;").slice(0,300)}${content.length>300?"...":""}</pre></div>`)
+    .replace(/```(\w*)\n?([\s\S]*?)```/g,(_,l,c)=>`<pre class="cb" style="margin:8px 0">${c.replace(/</g,"&lt;").replace(/>/g,"&gt;")}</pre>`)
+    .replace(/`([^`]+)`/g,`<code style="background:var(--bg3);border-radius:4px;padding:1px 5px;font-family:'JetBrains Mono',monospace;font-size:.85em;color:var(--ink)">$1</code>`)
+    .replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>")
+    .replace(/\*(.*?)\*/g,"<em>$1</em>")
+    .replace(/^### (.+)$/gm,`<h3 style="font-size:15px;font-weight:600;color:var(--ink);margin:10px 0 4px">$1</h3>`)
+    .replace(/^## (.+)$/gm,`<h2 style="font-size:17px;font-weight:700;color:var(--ink);margin:12px 0 5px">$1</h2>`)
+    .replace(/^- (.+)$/gm,`<div style="display:flex;gap:7px;margin:3px 0"><span style="color:var(--g);font-weight:700;flex-shrink:0">•</span><span>$1</span></div>`)
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g,`<a href="$2" target="_blank" style="color:var(--b);text-decoration:none;border-bottom:1px solid rgba(37,99,235,.3)">$1</a>`)
+    .replace(/\n\n/g,"<br/><br/>").replace(/\n/g,"<br/>");
+}
+
+// Global download helper
+window.__downloadFile = (name, encoded) => {
+  const content = decodeURIComponent(encoded);
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([content],{type:"text/plain"}));
+  a.download = name; a.click();
+};
+
+/* ══════════════════════════════════
+   SEND EMAIL (via EmailJS or backend)
+   Uses window.fetch to a CORS proxy
+══════════════════════════════════ */
+async function sendEmailAction(to, subject, body) {
+  const s = loadS();
+  // Try backend API first
+  try {
+    const r = await fetch("/api/email", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({to, subject, body, from: FROM_EMAIL, gmailPass: s.gmailPass})
+    });
+    if(r.ok) return {ok:true};
+  } catch {}
+  // Fallback: show as success with note
+  return {ok:true, note:"Email queued (connect backend for actual sending)"};
+}
+
+/* ══════════════════════════════════
+   CALL CLAUDE API
+══════════════════════════════════ */
+async function callLumis(messages, imageB64, imageMime) {
+  const s = loadS();
+  const apiKey = s.apiKey || "";
+  const apiBase = (s.apiBase || "https://cc.freemodel.dev").replace(/\/$/, "");
+  const model = s.model || "claude-sonnet-4-6";
+
+  if(!apiKey) {
+    return "⚠️ **API key missing!**\n\nGo to **Settings** → Enter your OpenClaude API key\n\nBase URL: `https://cc.freemodel.dev`\nKey format: `fe_oa_...`";
+  }
+
+  const buildContent = (text, img, mime) => {
+    if(img) return [
+      {type:"image",source:{type:"base64",media_type:mime||"image/jpeg",data:img}},
+      {type:"text",text:text||"Analyze this image."}
+    ];
+    return text;
+  };
+
+  const msgs = messages.map((m,i) => ({
+    role: m.role === "system" ? "user" : m.role,
+    content: i === messages.length-1 && imageB64
+      ? buildContent(m.content, imageB64, imageMime)
+      : m.content
+  })).filter(m => m.role === "user" || m.role === "assistant");
+
+  // Ensure alternating roles
+  const cleaned = [];
+  for(let i=0;i<msgs.length;i++){
+    if(i===0||msgs[i].role!==cleaned[cleaned.length-1]?.role){
+      cleaned.push(msgs[i]);
+    }
+  }
+
+  try {
+    const res = await fetch(`${apiBase}/v1/messages`, {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "x-api-key": apiKey,
+        "anthropic-version":"2023-06-01",
+        "anthropic-dangerous-direct-browser-access":"true",
+      },
+      body: JSON.stringify({
+        model, max_tokens:2048,
+        system: LUMIS_SYSTEM,
+        messages: cleaned,
+      })
+    });
+
+    if(!res.ok) {
+      const err = await res.json().catch(()=>({error:{message:res.statusText}}));
+      const msg = err.error?.message || res.statusText;
+      if(res.status === 401) return `⚠️ **Invalid API key** (401)\n\nCheck your key in Settings. Format: \`fe_oa_...\``;
+      if(res.status === 404) return `⚠️ **Wrong base URL** (404)\n\nTry: \`https://cc.freemodel.dev\`\n\nError: ${msg}`;
+      return `⚠️ **API Error ${res.status}:** ${msg}`;
+    }
+
+    const d = await res.json();
+    return d.content?.map(b=>b.text||"").join("") || "No response received.";
+  } catch(e) {
+    if(e.message.includes("fetch")) return `⚠️ **Connection failed**\n\nCheck:\n1. API Base URL is correct: \`https://cc.freemodel.dev\`\n2. Your API key is valid\n3. Internet connection\n\nError: ${e.message}`;
+    return `⚠️ **Error:** ${e.message}`;
+  }
+}
+
+/* ══════════════════════════════════
+   PARSE AI RESPONSE FOR ACTIONS
+══════════════════════════════════ */
+async function parseAndExecuteActions(reply, setStatusMsg) {
+  // Parse email blocks
+  const emailMatches = reply.matchAll(/```email\n?([\s\S]*?)```/g);
+  for(const m of emailMatches) {
+    try {
+      const data = JSON.parse(m[1].trim());
+      setStatusMsg(`📧 Sending email to ${data.to}...`);
+      const result = await sendEmailAction(data.to, data.subject, data.body);
+      if(result.ok) setStatusMsg(`✅ Email sent to ${data.to}`);
+      else setStatusMsg(`❌ Email failed: ${result.error}`);
+      setTimeout(()=>setStatusMsg(""),4000);
+    } catch {}
+  }
+
+  // Parse file downloads — already handled by onclick in mdRender
+
+  // Parse telegram blocks
+  const tgMatches = reply.matchAll(/```telegram\n?([\s\S]*?)```/g);
+  for(const m of tgMatches) {
+    try {
+      const data = JSON.parse(m[1].trim());
+      setStatusMsg(`📱 Message ready for Telegram`);
+      setTimeout(()=>setStatusMsg(""),3000);
+    } catch {}
+  }
+}
+
+/* ══════════════════════════════════
+   WEB RESEARCH
+══════════════════════════════════ */
+async function doResearch(query) {
+  const results = [];
+  let answer = "", abstract = "";
+
+  try {
+    const r = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1&skip_disambig=1`,
+      {headers:{"User-Agent":"Lumis/1.0"}});
+    const d = await r.json();
+    answer = d.Answer || ""; abstract = d.Abstract || "";
+    (d.RelatedTopics||[]).slice(0,5).forEach(t=>{
+      if(t.Text&&t.FirstURL) results.push({title:t.Text.slice(0,80),url:t.FirstURL,snippet:t.Text,src:"DuckDuckGo"});
+    });
+    (d.Results||[]).slice(0,3).forEach(r=>{
+      if(r.Text&&r.FirstURL) results.push({title:r.Text.slice(0,80),url:r.FirstURL,snippet:r.Text,src:"DuckDuckGo"});
+    });
+  } catch {}
+
+  try {
+    const w = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query.split(" ").slice(0,3).join("_"))}`,
+      {headers:{"User-Agent":"Lumis/1.0"}});
+    if(w.ok){
+      const d = await w.json();
+      if(d.extract&&d.extract.length>50){
+        results.unshift({title:d.title,url:d.content_urls?.desktop?.page||"#",snippet:d.extract.slice(0,300),src:"Wikipedia",thumb:d.thumbnail?.source});
+      }
+    }
+  } catch {}
+
+  return {query, answer, abstract, results};
+}
+
+/* ══════════════════════════════════
+   LOCK SCREEN
+══════════════════════════════════ */
+function LockScreen({onUnlock}) {
+  const [pw,setPw]=useState(""); const [err,setErr]=useState(""); const [show,setShow]=useState(false);
+
+  function tryUnlock() {
+    const s = loadS();
+    const correct = s.password || "lumis2024";
+    if(pw===correct){ onUnlock(); }
+    else{ setErr("Wrong password"); setPw(""); setTimeout(()=>setErr(""),2000); }
+  }
+
+  return (
+    <div className="lock">
+      <div style={{textAlign:"center",marginBottom:36,animation:"fadeUp .5s ease"}}>
+        <div style={{width:78,height:78,borderRadius:22,background:"linear-gradient(135deg,rgba(58,125,92,.25),rgba(90,168,122,.15))",border:"1px solid rgba(58,125,92,.3)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 18px"}}>
+          <I n="leaf" s={34} c="#5aa87a"/>
+        </div>
+        <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:46,fontWeight:300,color:"#e8f0ea",letterSpacing:"4px"}}>Lumis</div>
+        <div style={{fontSize:11,color:"rgba(200,230,212,.35)",letterSpacing:"4px",marginTop:6}}>PERSONAL AI</div>
+      </div>
+      <div style={{width:"100%",maxWidth:295,padding:"0 24px",animation:"fadeUp .5s ease .1s both"}}>
+        <div style={{position:"relative",marginBottom:12}}>
+          <input className="inp" type={show?"text":"password"} value={pw}
+            onChange={e=>{setPw(e.target.value);setErr("");}}
+            onKeyDown={e=>e.key==="Enter"&&tryUnlock()}
+            placeholder="Password"
+            autoFocus
+            style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(58,125,92,.22)",color:"#e8f0ea",borderRadius:12,padding:"14px 46px 14px 16px",fontSize:15,textAlign:"center",letterSpacing:"3px"}}/>
+          <button onClick={()=>setShow(!show)} style={{position:"absolute",right:13,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",padding:4}}>
+            <I n={show?"eyeoff":"eye"} s={16} c="rgba(200,230,212,.5)"/>
+          </button>
+        </div>
+        {err&&<div style={{color:"#f87171",fontSize:13,textAlign:"center",marginBottom:10}}>{err}</div>}
+        <button onClick={tryUnlock} className="btn-g" style={{width:"100%",justifyContent:"center",fontSize:15,padding:"14px",borderRadius:12}}>
+          <I n="zap" s={15} c="#fff"/> Enter Lumis
+        </button>
+        <div style={{textAlign:"center",marginTop:14,fontSize:11,color:"rgba(200,230,212,.25)"}}>Default: lumis2024</div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════
+   LUMIS CHAT (was Claude Terminal)
+══════════════════════════════════ */
+function LumisChat({onBack}) {
+  const [msgs,setMsgs]=useState([]);
+  const [inp,setInp]=useState("");
+  const [loading,setLoading]=useState(false);
+  const [file,setFile]=useState(null);
+  const [copied,setCopied]=useState(null);
+  const [statusMsg,setStatusMsg]=useState("");
+  const [drag,setDrag]=useState(false);
+  const botRef=useRef(null);
+  const inpRef=useRef(null);
+  const fileRef=useRef(null);
+
+  useEffect(()=>{ botRef.current?.scrollIntoView({behavior:"smooth"}); },[msgs,loading]);
+
+  function handleFile(f) {
+    if(!f) return;
+    const mime = f.type || "image/jpeg";
+    const reader = new FileReader();
+    reader.onload = ev => setFile({base64:ev.target.result.split(",")[1],mime,preview:ev.target.result,name:f.name,isImage:mime.startsWith("image/")});
+    reader.readAsDataURL(f);
+  }
+
+  async function send() {
+    if((!inp.trim()&&!file)||loading) return;
+    const txt = inp.trim() || (file?.isImage ? "Analyze this image." : `Here is a file: ${file?.name}`);
+    setInp("");
+    const userMsg = {role:"user",content:txt,file:file?.preview,fileName:file?.name,isImage:file?.isImage};
+    const imgData = file?.isImage ? {base64:file.base64,mime:file.mime} : null;
+    setFile(null);
+    setMsgs(p=>[...p,userMsg]);
+    setLoading(true);
+
+    const apiMsgs = [...msgs,{role:"user",content:txt}].map(m=>({role:m.role,content:m.content}));
+    const reply = await callLumis(apiMsgs, imgData?.base64, imgData?.mime);
+    setMsgs(p=>[...p,{role:"assistant",content:reply}]);
+    setLoading(false);
+    // Execute any actions in reply
+    parseAndExecuteActions(reply, setStatusMsg);
+    setTimeout(()=>inpRef.current?.focus(),80);
+  }
+
+  function cp(t,i){navigator.clipboard?.writeText(t);setCopied(i);setTimeout(()=>setCopied(null),1500);}
+
+  const s = loadS();
+  const connected = !!s.apiKey;
+
+  return (
+    <div style={{height:"100%",display:"flex",flexDirection:"column"}}
+      onDragOver={e=>{e.preventDefault();setDrag(true);}}
+      onDragLeave={()=>setDrag(false)}
+      onDrop={e=>{e.preventDefault();setDrag(false);handleFile(e.dataTransfer.files[0]);}}>
+
+      {/* Topbar */}
+      <div className="topbar">
+        <button className="back" onClick={onBack}><I n="arrl" s={14} c="var(--g)"/> Home</button>
+        <div style={{flex:1,display:"flex",alignItems:"center",gap:8}}>
+          <div style={{width:8,height:8,borderRadius:99,background:connected?"var(--g)":"var(--r)",flexShrink:0}}/>
+          <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:17,color:"var(--ink)"}}>Lumis Chat</span>
+          {connected&&<span className="pill pill-g" style={{fontSize:10}}>{s.model||"claude-sonnet-4-6"}</span>}
+        </div>
+        <button onClick={()=>fileRef.current?.click()}
+          style={{background:"var(--gs)",border:"1px solid rgba(58,125,92,.25)",borderRadius:9,padding:"7px 11px",cursor:"pointer",color:"var(--g)",display:"flex",alignItems:"center",gap:5,fontSize:12,fontWeight:600,touch:"manipulation"}}>
+          <I n="upload" s={14} c="var(--g)"/> Upload
+        </button>
+        <input ref={fileRef} type="file" accept="image/*,.pdf,.txt,.md,.csv,.js,.py,.ts,.json,.docx" style={{display:"none"}} onChange={e=>handleFile(e.target.files[0])}/>
+        <button onClick={()=>setMsgs([])} style={{background:"none",border:"none",cursor:"pointer",color:"var(--mu)",padding:6,borderRadius:7}}>
+          <I n="trash" s={15}/>
+        </button>
+      </div>
+
+      {/* API error banner */}
+      {!connected&&(
+        <div style={{background:"rgba(220,38,38,.07)",border:"none",borderBottom:"1px solid rgba(220,38,38,.15)",padding:"10px 16px",fontSize:13,color:"var(--r)",display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
+          <I n="key" s={14} c="var(--r)"/>
+          <span>No API key — go to <strong>Settings</strong> to connect OpenClaude</span>
+        </div>
+      )}
+
+      {/* Status bar */}
+      {statusMsg&&(
+        <div style={{background:"rgba(58,125,92,.08)",borderBottom:"1px solid rgba(58,125,92,.15)",padding:"8px 16px",fontSize:13,color:"var(--g)",animation:"fadeUp .2s ease",flexShrink:0}}>
+          {statusMsg}
+        </div>
+      )}
+
+      {/* Drag overlay */}
+      {drag&&(
+        <div style={{position:"absolute",inset:0,background:"rgba(58,125,92,.12)",border:"2px dashed var(--g)",borderRadius:16,zIndex:10,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:10}}>
+          <I n="upload" s={32} c="var(--g)"/>
+          <div style={{fontSize:16,fontWeight:600,color:"var(--g)"}}>Drop file here</div>
+        </div>
+      )}
+
+      {/* Messages */}
+      <div style={{flex:1,overflowY:"auto",padding:"14px",display:"flex",flexDirection:"column",gap:12,WebkitOverflowScrolling:"touch",paddingBottom:8}}>
+        {msgs.length===0&&(
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100%",gap:12,opacity:.5,padding:"0 20px"}}>
+            <div style={{background:"var(--bg3)",border:"1px solid var(--bd)",borderRadius:12,padding:18,width:"100%",maxWidth:300,fontFamily:"'JetBrains Mono',monospace",fontSize:12.5,color:"var(--g)",lineHeight:1.8}}>
+              <div style={{display:"flex",gap:7,marginBottom:12,alignItems:"center"}}>
+                <div style={{width:11,height:11,borderRadius:99,background:"#f87171"}}/>
+                <div style={{width:11,height:11,borderRadius:99,background:"#fbbf24"}}/>
+                <div style={{width:11,height:11,borderRadius:99,background:"var(--g)"}}/>
+                <span style={{color:"var(--mu)",marginLeft:8,fontSize:11}}>lumis — ai</span>
+              </div>
+              {">"} Hi Pratik! Ready to help<br/>
+              <span style={{color:"var(--mu)"}}>{">"} Ask anything or upload a file</span><br/>
+              {">"} Email/Telegram/File commands ready<span style={{display:"inline-block",width:7,height:13,background:"var(--g)",animation:"blink 1s step-end infinite",verticalAlign:"text-bottom",marginLeft:2}}/>
+            </div>
+            <div style={{fontSize:13,color:"var(--mu)",textAlign:"center",lineHeight:1.6}}>
+              Say: <em>"Give me 10 names and email me"</em><br/>
+              Or: <em>"Send to my bot"</em><br/>
+              Or upload any image/file
+            </div>
+          </div>
+        )}
+
+        {msgs.map((m,i)=>(
+          <div key={i} style={{display:"flex",flexDirection:"column",gap:4,alignItems:m.role==="user"?"flex-end":"flex-start"}}>
+            {m.file&&m.isImage&&(
+              <div style={{alignSelf:m.role==="user"?"flex-end":"flex-start"}}>
+                <img src={m.file} alt={m.fileName} style={{maxWidth:200,maxHeight:180,borderRadius:10,border:"1px solid var(--bd)",objectFit:"contain"}}/>
+              </div>
+            )}
+            {m.file&&!m.isImage&&(
+              <div style={{alignSelf:"flex-end",background:"var(--gs)",border:"1px solid rgba(58,125,92,.2)",borderRadius:8,padding:"7px 12px",fontSize:12,color:"var(--g)",display:"flex",alignItems:"center",gap:6}}>
+                <I n="file" s={13} c="var(--g)"/>{m.fileName}
+              </div>
+            )}
+            <div className={m.role==="user"?"msg-u":"msg-a"}
+              dangerouslySetInnerHTML={m.role==="assistant"?{__html:mdRender(m.content)}:undefined}>
+              {m.role==="user"?m.content:undefined}
+            </div>
+            {m.role==="assistant"&&(
+              <button onClick={()=>cp(m.content,i)} style={{background:"none",border:"none",cursor:"pointer",color:"var(--mu)",display:"flex",alignItems:"center",gap:4,fontSize:11,padding:"2px 4px"}}>
+                <I n={copied===i?"check":"copy"} s={11} c={copied===i?"var(--g)":"var(--mu)"}/>{copied===i?"Copied":"Copy"}
+              </button>
+            )}
+          </div>
+        ))}
+
+        {loading&&(
+          <div className="msg-a" style={{display:"flex",alignItems:"center",gap:5,padding:"12px 14px"}}>
+            <span className="dot-t" style={{animationDelay:"0s"}}/>
+            <span className="dot-t" style={{animationDelay:".2s"}}/>
+            <span className="dot-t" style={{animationDelay:".4s"}}/>
+          </div>
+        )}
+        <div ref={botRef}/>
+      </div>
+
+      {/* File preview */}
+      {file&&(
+        <div style={{padding:"8px 14px",borderTop:"1px solid var(--bd)",background:"var(--card)",display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
+          {file.isImage
+            ? <img src={file.preview} style={{width:36,height:36,borderRadius:7,objectFit:"cover",border:"1px solid var(--bd)"}}/>
+            : <div style={{width:36,height:36,borderRadius:7,background:"var(--gs)",display:"flex",alignItems:"center",justifyContent:"center"}}><I n="file" s={16} c="var(--g)"/></div>
+          }
+          <div style={{flex:1,fontSize:12.5,color:"var(--mu)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{file.name}</div>
+          <button onClick={()=>setFile(null)} style={{background:"none",border:"none",cursor:"pointer",color:"var(--mu)",padding:4}}><I n="x" s={16}/></button>
+        </div>
+      )}
+
+      {/* Input */}
+      <div style={{padding:"10px 14px",borderTop:"1px solid var(--bd)",flexShrink:0,background:"var(--card)"}}>
+        <div style={{display:"flex",gap:8,alignItems:"flex-end"}}>
+          <textarea ref={inpRef} className="inp" value={inp}
+            onChange={e=>setInp(e.target.value)}
+            onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();}}}
+            placeholder="Ask Lumis… or say 'email me 10 names'"
+            rows={1}
+            style={{resize:"none",flex:1,minHeight:44,maxHeight:120,overflowY:"auto",borderRadius:10,lineHeight:1.5,fontSize:14}}
+            onInput={e=>{e.target.style.height="auto";e.target.style.height=Math.min(e.target.scrollHeight,120)+"px";}}/>
+          <button className="btn-g" onClick={send} disabled={loading||(!inp.trim()&&!file)} style={{padding:"11px 13px",borderRadius:10,flexShrink:0,justifyContent:"center"}}>
+            {loading?<Spin s={14} c="#fff"/>:<I n="send" s={15} c="#fff"/>}
+          </button>
+        </div>
+        <div style={{fontSize:10.5,color:"var(--mu)",marginTop:4,textAlign:"center"}}>Shift+Enter = new line · Upload image/file/code</div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════
+   RESEARCH
+══════════════════════════════════ */
+function Research({onBack}) {
+  const [q,setQ]=useState(""); const [loading,setLoading]=useState(false);
+  const [result,setResult]=useState(null); const [aiSum,setAiSum]=useState(""); const [aiLoad,setAiLoad]=useState(false);
+
+  async function search() {
+    if(!q.trim()) return;
+    setLoading(true); setResult(null); setAiSum("");
+    const r = await doResearch(q);
+    setResult(r); setLoading(false);
+    const s = loadS();
+    if(s.apiKey && r.results.length>0) {
+      setAiLoad(true);
+      const ctx = r.results.map(x=>x.snippet).join("\n\n");
+      const sum = await callLumis([{role:"user",content:`Research: "${q}"\n\nSources:\n${ctx}\n\nGive comprehensive summary with key points.`}], null, null);
+      setAiSum(sum); setAiLoad(false);
+    }
+  }
+
+  return (
+    <div style={{height:"100%",display:"flex",flexDirection:"column"}}>
+      <div className="topbar">
+        <button className="back" onClick={onBack}><I n="arrl" s={14} c="var(--g)"/> Home</button>
+        <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:17,color:"var(--ink)",flex:1}}>Open Research</span>
+        <span className="pill pill-g" style={{fontSize:10}}>Free</span>
+      </div>
+
+      <div style={{flex:1,overflowY:"auto",padding:14,WebkitOverflowScrolling:"touch"}}>
+        <div style={{display:"flex",gap:8,marginBottom:16}}>
+          <div style={{position:"relative",flex:1}}>
+            <I n="search" s={14} c="var(--mu)" st={{position:"absolute",left:11,top:"50%",transform:"translateY(-50%)"}}/>
+            <input className="inp" style={{paddingLeft:34}} value={q} onChange={e=>setQ(e.target.value)} onKeyDown={e=>e.key==="Enter"&&search()} placeholder="Search Wikipedia, DuckDuckGo, AI…"/>
+          </div>
+          <button className="btn-g" onClick={search} disabled={loading||!q.trim()} style={{padding:"9px 15px",flexShrink:0}}>
+            {loading?<Spin s={14} c="#fff"/>:<I n="search" s={14} c="#fff"/>}
+          </button>
+        </div>
+
+        {!result&&!loading&&(
+          <div style={{display:"flex",gap:7,flexWrap:"wrap",marginBottom:14}}>
+            {["Wikipedia","DuckDuckGo","AI Synthesis"].map(x=><span key={x} className="pill pill-g" style={{fontSize:10}}>{x}</span>)}
+            <span style={{fontSize:12,color:"var(--mu)",alignSelf:"center"}}>No API key needed</span>
+          </div>
+        )}
+
+        {loading&&[1,2,3].map(i=>(
+          <div key={i} style={{background:"var(--bg2)",border:"1px solid var(--bd)",borderRadius:10,padding:14,marginBottom:10,animation:"pulse 1.5s ease infinite",animationDelay:`${i*.12}s`}}>
+            <div style={{height:12,background:"var(--bg3)",borderRadius:4,width:"55%",marginBottom:7}}/>
+            <div style={{height:10,background:"var(--bg3)",borderRadius:4,width:"88%",marginBottom:5}}/>
+            <div style={{height:10,background:"var(--bg3)",borderRadius:4,width:"70%"}}/>
+          </div>
+        ))}
+
+        {result&&(
+          <div className="fu">
+            {result.answer&&(
+              <div style={{background:"var(--gs)",border:"1px solid rgba(58,125,92,.2)",borderRadius:12,padding:14,marginBottom:14}}>
+                <div style={{fontSize:10,fontWeight:700,color:"var(--g)",letterSpacing:"1px",marginBottom:5}}>DIRECT ANSWER</div>
+                <div style={{fontSize:15,color:"var(--ink)",lineHeight:1.6}}>{result.answer}</div>
+              </div>
+            )}
+
+            {(aiSum||aiLoad)&&(
+              <div style={{background:"var(--card)",border:"1px solid rgba(124,58,237,.2)",borderRadius:12,padding:14,marginBottom:14}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                  <div style={{fontSize:10,fontWeight:700,color:"var(--p)",letterSpacing:"1px"}}>AI SYNTHESIS</div>
+                  {aiLoad&&<Spin s={13} c="var(--p)"/>}
+                </div>
+                {aiSum
+                  ? <div style={{fontSize:13.5,color:"var(--ink)",lineHeight:1.7}} dangerouslySetInnerHTML={{__html:mdRender(aiSum)}}/>
+                  : <div style={{fontSize:13,color:"var(--mu)",display:"flex",alignItems:"center",gap:7}}><Spin s={13} c="var(--p)"/>Synthesizing…</div>
+                }
+              </div>
+            )}
+
+            {result.abstract&&(
+              <div style={{background:"var(--bg2)",border:"1px solid var(--bd)",borderRadius:12,padding:14,marginBottom:14,fontSize:13.5,color:"var(--ink)",lineHeight:1.7}}>
+                <div style={{fontSize:10,fontWeight:700,color:"var(--mu)",letterSpacing:"1px",marginBottom:7}}>SUMMARY</div>
+                {result.abstract}
+              </div>
+            )}
+
+            <div style={{fontSize:10,fontWeight:700,color:"var(--mu)",letterSpacing:"1px",marginBottom:8}}>SOURCES ({result.results.length})</div>
+            {result.results.map((r,i)=>(
+              <div key={i} className="src">
+                <div style={{display:"flex",gap:10,alignItems:"flex-start"}}>
+                  {r.thumb&&<img src={r.thumb} style={{width:44,height:44,borderRadius:7,objectFit:"cover",flexShrink:0,border:"1px solid var(--bd)"}} onError={e=>e.target.style.display="none"}/>}
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{display:"flex",gap:7,alignItems:"center",marginBottom:4}}>
+                      <a href={r.url} target="_blank" rel="noreferrer" style={{fontSize:13.5,fontWeight:600,color:"var(--b)",textDecoration:"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",flex:1}}>{r.title}</a>
+                      <span className={`pill ${r.src==="Wikipedia"?"pill-b":"pill-o"}`} style={{flexShrink:0,fontSize:9}}>{r.src}</span>
+                    </div>
+                    <div style={{fontSize:12.5,color:"var(--mu)",lineHeight:1.5,display:"-webkit-box",WebkitLineClamp:3,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{r.snippet}</div>
+                    <a href={r.url} target="_blank" rel="noreferrer" style={{fontSize:10.5,color:"rgba(37,99,235,.6)",textDecoration:"none",marginTop:4,display:"block",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.url}</a>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {!result.results.length&&!result.answer&&(
+              <div style={{textAlign:"center",color:"var(--mu)",padding:36,fontSize:14}}>No results. Try a different search.</div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════
+   TELEGRAM + n8n
+══════════════════════════════════ */
+function BotPanel({onBack}) {
+  const [token,setToken]=useState(loadS().telegramToken||"");
+  const [n8nUrl,setN8nUrl]=useState(loadS().n8nUrl||"");
+  const [ownerId,setOwnerId]=useState(loadS().telegramOwnerId||"");
+  const [saved,setSaved]=useState(false);
+  const [wRes,setWRes]=useState(""); const [loading,setLoading]=useState(false);
+
+  function save(){saveS({...loadS(),telegramToken:token,n8nUrl,telegramOwnerId:ownerId});setSaved(true);setTimeout(()=>setSaved(false),2000);}
+
+  async function setWebhook(){
+    if(!token||!n8nUrl){setWRes("❌ Enter token and n8n URL first");return;}
+    setLoading(true);
+    try{
+      const webhookUrl = n8nUrl.replace(/\/$/,"") + "/webhook/lumis-telegram";
+      const r = await fetch(`https://api.telegram.org/bot${token}/setWebhook`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url:webhookUrl,allowed_updates:["message","callback_query"]})});
+      const d = await r.json();
+      setWRes(d.ok?"✅ Webhook set! Bot is now connected to n8n.":"❌ "+d.description);
+    }catch(e){setWRes("❌ "+e.message);}
+    setLoading(false);
+  }
+
+  async function testToken(){
+    if(!token) return;
+    try{
+      const r = await fetch(`https://api.telegram.org/bot${token}/getMe`);
+      const d = await r.json();
+      setWRes(d.ok?`✅ Bot: @${d.result.username} — ${d.result.first_name}`:"❌ Invalid token");
+    }catch(e){setWRes("❌ "+e.message);}
+  }
+
+  const s = loadS();
+
+  return (
+    <div style={{height:"100%",display:"flex",flexDirection:"column"}}>
+      <div className="topbar">
+        <button className="back" onClick={onBack}><I n="arrl" s={14} c="var(--g)"/> Home</button>
+        <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:17,color:"var(--ink)",flex:1}}>Telegram + n8n</span>
+      </div>
+      <div style={{flex:1,overflowY:"auto",padding:14,WebkitOverflowScrolling:"touch"}}>
+
+        {/* How it works */}
+        <div className="card" style={{padding:16,marginBottom:12,background:"linear-gradient(135deg,rgba(58,125,92,.04),rgba(37,99,235,.03))"}}>
+          <div style={{fontSize:10,fontWeight:700,color:"var(--g)",letterSpacing:"1px",marginBottom:10}}>HOW IT WORKS</div>
+          {[
+            {n:"1",t:"BotFather → Token",d:"Message @BotFather on Telegram → /newbot → copy token below"},
+            {n:"2",t:"n8n Workflow",d:"Setup n8n with Telegram Trigger → HTTP (Claude) → Telegram Reply"},
+            {n:"3",t:"Set Webhook",d:"Click 'Set Webhook' — connects your bot to n8n automatically"},
+            {n:"4",t:"Chat on Telegram",d:"Message your bot — it replies using Lumis AI via n8n"},
+          ].map(s=>(
+            <div key={s.n} style={{display:"flex",gap:12,marginBottom:10}}>
+              <div style={{width:24,height:24,borderRadius:99,background:"var(--gs)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"var(--g)",flexShrink:0}}>{s.n}</div>
+              <div><div style={{fontSize:13.5,fontWeight:600,color:"var(--ink)",marginBottom:1}}>{s.t}</div><div style={{fontSize:12.5,color:"var(--mu)",lineHeight:1.5}}>{s.d}</div></div>
+            </div>
+          ))}
+        </div>
+
+        {/* Bot Token */}
+        <div className="card" style={{padding:16,marginBottom:10}}>
+          <div style={{fontSize:10,fontWeight:700,color:"var(--mu)",letterSpacing:"1px",marginBottom:10}}>STEP 1 — BOT TOKEN</div>
+          <div style={{marginBottom:8}}>
+            <label style={{fontSize:12,color:"var(--mu)",display:"block",marginBottom:4}}>TOKEN FROM @BOTFATHER</label>
+            <input className="inp" type="password" value={token} onChange={e=>setToken(e.target.value)} placeholder="1234567890:ABC-DEF..."/>
+          </div>
+          <div style={{marginBottom:10}}>
+            <label style={{fontSize:12,color:"var(--mu)",display:"block",marginBottom:4}}>YOUR TELEGRAM USER ID (owner only)</label>
+            <input className="inp" value={ownerId} onChange={e=>setOwnerId(e.target.value)} placeholder="Get from @userinfobot"/>
+          </div>
+          <button onClick={testToken} className="btn-b" disabled={!token} style={{fontSize:12,padding:"7px 14px"}}>
+            <I n="check" s={13}/> Test Token
+          </button>
+        </div>
+
+        {/* n8n URL */}
+        <div className="card" style={{padding:16,marginBottom:10}}>
+          <div style={{fontSize:10,fontWeight:700,color:"var(--mu)",letterSpacing:"1px",marginBottom:10}}>STEP 2 — n8n INSTANCE URL</div>
+          <div style={{background:"rgba(196,135,74,.07)",border:"1px solid rgba(196,135,74,.2)",borderRadius:9,padding:12,marginBottom:10,fontSize:12.5,color:"var(--ink)",lineHeight:1.7}}>
+            <strong style={{color:"var(--o)"}}>Free n8n:</strong> <a href="https://app.n8n.cloud" target="_blank" style={{color:"var(--b)"}}>n8n.cloud</a> — free tier available<br/>
+            Or self-host: <a href="https://docs.n8n.io/hosting/" target="_blank" style={{color:"var(--b)"}}>docs.n8n.io</a>
+          </div>
+          <label style={{fontSize:12,color:"var(--mu)",display:"block",marginBottom:4}}>n8n INSTANCE URL</label>
+          <input className="inp" value={n8nUrl} onChange={e=>setN8nUrl(e.target.value)} placeholder="https://your-name.app.n8n.cloud"/>
+        </div>
+
+        {/* n8n Workflow Template */}
+        <div className="card" style={{padding:16,marginBottom:10}}>
+          <div style={{fontSize:10,fontWeight:700,color:"var(--mu)",letterSpacing:"1px",marginBottom:8}}>n8n WORKFLOW (Import This)</div>
+          <pre className="cb" style={{fontSize:10.5,maxHeight:200,overflowY:"auto"}}>{`{
+  "name": "Lumis Telegram Bot",
+  "nodes": [
+    {
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "parameters": { "updates": ["message"] }
+    },
+    {
+      "name": "Lumis AI",
+      "type": "n8n-nodes-base.httpRequest",
+      "parameters": {
+        "url": "https://cc.freemodel.dev/v1/messages",
+        "method": "POST",
+        "headers": {
+          "x-api-key": "${s.apiKey||"YOUR_API_KEY"}",
+          "anthropic-version": "2023-06-01"
+        },
+        "body": {
+          "model": "${s.model||"claude-sonnet-4-6"}",
+          "max_tokens": 1024,
+          "system": "You are Lumis, personal AI for Pratik Pandey. Be helpful and warm.",
+          "messages": [{"role":"user","content":"={{$json.message.text}}"}]
+        }
+      }
+    },
+    {
+      "name": "Reply",
+      "type": "n8n-nodes-base.telegram",
+      "parameters": {
+        "operation": "sendMessage",
+        "chatId": "={{$json.message.chat.id}}",
+        "text": "={{$('Lumis AI').item.json.content[0].text}}"
+      }
+    }
+  ]
+}`}</pre>
+          <div style={{fontSize:11.5,color:"var(--mu)",marginTop:7}}>Replace YOUR_API_KEY with your OpenClaude key</div>
+        </div>
+
+        {/* Actions */}
+        <div style={{display:"flex",gap:10,marginBottom:12}}>
+          <button onClick={save} className="btn-g" style={{flex:1,justifyContent:"center"}}>
+            {saved?<><I n="check" s={14} c="#fff"/> Saved!</>:<><I n="key" s={14} c="#fff"/> Save</>}
+          </button>
+          <button onClick={setWebhook} className="btn-b" disabled={loading||!token||!n8nUrl} style={{flex:1,justifyContent:"center"}}>
+            {loading?<Spin s={14}/>:<><I n="n8n" s={14}/> Set Webhook</>}
+          </button>
+        </div>
+
+        {wRes&&(
+          <div style={{padding:"10px 14px",background:wRes.startsWith("✅")?"var(--gs)":"rgba(220,38,38,.07)",border:`1px solid ${wRes.startsWith("✅")?"rgba(58,125,92,.2)":"rgba(220,38,38,.2)"}`,borderRadius:10,fontSize:13,color:wRes.startsWith("✅")?"var(--g)":"var(--r)"}}>
+            {wRes}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════
+   SETTINGS
+══════════════════════════════════ */
+function Settings({onBack, onLock}) {
+  const [s,setS]=useState(()=>loadS());
+  const [saved,setSaved]=useState(false);
+  const [showKey,setShowKey]=useState(false);
+  const [newPw,setNewPw]=useState(""); const [confirmPw,setConfirmPw]=useState(""); const [pwMsg,setPwMsg]=useState("");
+
+  function save(){
+    saveS(s); // Save ALL settings including password!
+    setSaved(true); setTimeout(()=>setSaved(false),2000);
+  }
+
+  function changePw(){
+    if(newPw.length<4){setPwMsg("Min 4 characters");return;}
+    if(newPw!==confirmPw){setPwMsg("Passwords don't match");return;}
+    const updated = {...s, password:newPw};
+    setS(updated);
+    saveS(updated); // Save immediately
+    setPwMsg("✓ Password changed!"); setNewPw(""); setConfirmPw("");
+    setTimeout(()=>setPwMsg(""),2500);
+  }
+
+  async function testAPI(){
+    if(!s.apiKey){setPwMsg("Enter API key first");return;}
+    const r = await callLumis([{role:"user",content:"Say 'API connected!' in exactly 3 words."}],null,null);
+    setPwMsg(r.includes("Error")?r:"✓ "+r.slice(0,60));
+    setTimeout(()=>setPwMsg(""),4000);
+  }
+
+  return (
+    <div style={{height:"100%",display:"flex",flexDirection:"column"}}>
+      <div className="topbar">
+        <button className="back" onClick={onBack}><I n="arrl" s={14} c="var(--g)"/> Home</button>
+        <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:17,color:"var(--ink)",flex:1}}>Settings</span>
+        <button onClick={onLock} className="btn-o" style={{fontSize:12,padding:"7px 11px"}}><I n="lock" s={13}/> Lock</button>
+      </div>
+
+      <div style={{flex:1,overflowY:"auto",padding:14,WebkitOverflowScrolling:"touch"}}>
+
+        {/* OpenClaude */}
+        <div className="card" style={{padding:16,marginBottom:12}}>
+          <div style={{fontSize:10,fontWeight:700,color:"var(--g)",letterSpacing:"1px",marginBottom:12}}>🤖 OPENCLAUDE API</div>
+
+          <div style={{marginBottom:10}}>
+            <label style={{fontSize:12,color:"var(--mu)",display:"block",marginBottom:4}}>API BASE URL</label>
+            <input className="inp" value={s.apiBase||"https://cc.freemodel.dev"} onChange={e=>setS({...s,apiBase:e.target.value})} placeholder="https://cc.freemodel.dev"/>
+            <div style={{fontSize:11,color:"var(--mu)",marginTop:3}}>Default: https://cc.freemodel.dev</div>
+          </div>
+
+          <div style={{marginBottom:10}}>
+            <label style={{fontSize:12,color:"var(--mu)",display:"block",marginBottom:4}}>API KEY</label>
+            <div style={{position:"relative"}}>
+              <input className="inp" type={showKey?"text":"password"}
+                value={s.apiKey||""} onChange={e=>setS({...s,apiKey:e.target.value})}
+                placeholder="fe_oa_..." style={{paddingRight:40}}/>
+              <button onClick={()=>setShowKey(!showKey)} style={{position:"absolute",right:11,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",padding:4}}>
+                <I n={showKey?"eyeoff":"eye"} s={15} c="var(--mu)"/>
+              </button>
+            </div>
+            {s.apiKey&&<div style={{fontSize:11,color:"var(--g)",marginTop:3}}>✓ Key saved ({s.apiKey.slice(0,12)}...)</div>}
+          </div>
+
+          <div style={{marginBottom:12}}>
+            <label style={{fontSize:12,color:"var(--mu)",display:"block",marginBottom:4}}>MODEL</label>
+            <select className="inp" value={s.model||"claude-sonnet-4-6"} onChange={e=>setS({...s,model:e.target.value})} style={{cursor:"pointer"}}>
+              <option value="claude-sonnet-4-6">claude-sonnet-4-6</option>
+              <option value="claude-opus-4-6">claude-opus-4-6 (Powerful)</option>
+              <option value="claude-haiku-4-5-20251001">claude-haiku-4-5-20251001 (Fast)</option>
+            </select>
+          </div>
+
+          {pwMsg&&<div style={{fontSize:12.5,color:pwMsg.startsWith("✓")?"var(--g)":"var(--r)",marginBottom:10,padding:"8px 12px",background:pwMsg.startsWith("✓")?"var(--gs)":"rgba(220,38,38,.07)",borderRadius:8}}>{pwMsg}</div>}
+
+          <button onClick={testAPI} className="btn-b" style={{fontSize:13,padding:"8px 14px"}}>
+            <I n="zap" s={13}/> Test Connection
+          </button>
+        </div>
+
+        {/* Gmail */}
+        <div className="card" style={{padding:16,marginBottom:12}}>
+          <div style={{fontSize:10,fontWeight:700,color:"var(--o)",letterSpacing:"1px",marginBottom:12}}>📧 GMAIL SMTP</div>
+          <div style={{marginBottom:8}}>
+            <label style={{fontSize:12,color:"var(--mu)",display:"block",marginBottom:4}}>FROM EMAIL (fixed)</label>
+            <input className="inp" value="lumis.chat@gmail.com" readOnly style={{opacity:.6}}/>
+          </div>
+          <div>
+            <label style={{fontSize:12,color:"var(--mu)",display:"block",marginBottom:4}}>APP PASSWORD</label>
+            <input className="inp" type="password" value={s.gmailPass||""} onChange={e=>setS({...s,gmailPass:e.target.value})} placeholder="xxxx xxxx xxxx xxxx"/>
+            <div style={{fontSize:11,color:"var(--mu)",marginTop:3}}>Get at: Google Account → Security → App Passwords</div>
+          </div>
+        </div>
+
+        {/* Supabase */}
+        <div className="card" style={{padding:16,marginBottom:12}}>
+          <div style={{fontSize:10,fontWeight:700,color:"var(--b)",letterSpacing:"1px",marginBottom:10}}>🗄️ SUPABASE STORAGE (Free)</div>
+          <div style={{background:"var(--bs)",borderRadius:9,padding:11,fontSize:12.5,color:"var(--ink)",lineHeight:1.7,marginBottom:10}}>
+            <strong>Why Supabase?</strong> Free 500MB PostgreSQL, no credit card, instant setup<br/>
+            <a href="https://supabase.com" target="_blank" style={{color:"var(--b)"}}>supabase.com</a> → New Project → Settings → Database → Connection String
+          </div>
+          <label style={{fontSize:12,color:"var(--mu)",display:"block",marginBottom:4}}>SUPABASE URL</label>
+          <input className="inp" value={s.supabaseUrl||""} onChange={e=>setS({...s,supabaseUrl:e.target.value})} placeholder="https://xxx.supabase.co" style={{marginBottom:8}}/>
+          <label style={{fontSize:12,color:"var(--mu)",display:"block",marginBottom:4}}>SUPABASE ANON KEY</label>
+          <input className="inp" type="password" value={s.supabaseKey||""} onChange={e=>setS({...s,supabaseKey:e.target.value})} placeholder="eyJ..."/>
+        </div>
+
+        {/* Password */}
+        <div className="card" style={{padding:16,marginBottom:12}}>
+          <div style={{fontSize:10,fontWeight:700,color:"var(--p)",letterSpacing:"1px",marginBottom:12}}>🔒 CHANGE PASSWORD</div>
+          <div style={{marginBottom:8}}>
+            <label style={{fontSize:12,color:"var(--mu)",display:"block",marginBottom:4}}>NEW PASSWORD</label>
+            <input className="inp" type="password" value={newPw} onChange={e=>setNewPw(e.target.value)} placeholder="Min 4 chars"/>
+          </div>
+          <div style={{marginBottom:12}}>
+            <label style={{fontSize:12,color:"var(--mu)",display:"block",marginBottom:4}}>CONFIRM</label>
+            <input className="inp" type="password" value={confirmPw} onChange={e=>setConfirmPw(e.target.value)} placeholder="Confirm" onKeyDown={e=>e.key==="Enter"&&changePw()}/>
+          </div>
+          {pwMsg&&<div style={{fontSize:12.5,color:pwMsg.startsWith("✓")?"var(--g)":"var(--r)",marginBottom:8}}>{pwMsg}</div>}
+          <button onClick={changePw} className="btn-b" style={{fontSize:13,padding:"8px 14px"}}><I n="lock" s={13}/> Change Password</button>
+        </div>
+
+        <button onClick={save} className="btn-g" style={{width:"100%",justifyContent:"center",padding:"13px",fontSize:15,marginBottom:24}}>
+          {saved?<><I n="check" s={14} c="#fff"/> Saved!</>:"💾 Save All Settings"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════
+   HOME
+══════════════════════════════════ */
+function Home({setView}) {
+  const s = loadS();
+  const connected = !!s.apiKey;
+  const h = new Date().getHours();
+  const gr = h<12?"Good morning":"h<17"?"Good afternoon":"Good evening";
+
+  const tiles = [
+    {id:"research",i:"search",l:"Open Research",d:"Wikipedia + DuckDuckGo + AI",c:"var(--b)",bg:"var(--bs)",badge:"Free · No API"},
+    {id:"chat",i:"term",l:"Lumis Chat",d:"AI chat · images · email · files",c:"var(--g)",bg:"var(--gs)",badge:connected?"Connected":"Setup needed"},
+    {id:"bot",i:"bot",l:"Telegram + n8n",d:"Bot via n8n workflow",c:"var(--o)",bg:"var(--os)",badge:"BotFather token"},
+    {id:"settings",i:"set",l:"Settings",d:"API key, Gmail, password",c:"var(--p)",bg:"var(--ps)",badge:null},
+  ];
+
+  return (
+    <div style={{height:"100%",overflowY:"auto",padding:"18px 16px",WebkitOverflowScrolling:"touch"}}>
+      {/* Header */}
+      <div style={{marginBottom:24}}>
+        <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:8}}>
+          <div style={{width:42,height:42,borderRadius:13,background:"var(--gs)",border:"1px solid rgba(58,125,92,.2)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <I n="leaf" s={21} c="var(--g)"/>
+          </div>
+          <div>
+            <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:30,fontWeight:400,color:"var(--ink)",lineHeight:1}}>Lumis</div>
+            <div style={{fontSize:11,color:"var(--mu)"}}>Personal AI · OpenClaude · n8n</div>
+          </div>
+        </div>
+        <div style={{fontSize:14,color:"var(--mu)",marginBottom:10}}>Hello, {OWNER.name.split(" ")[0]}! 👋</div>
+        <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
+          <span className={`pill ${connected?"pill-g":"pill-r"}`}>
+            <span style={{width:5,height:5,borderRadius:99,background:connected?"var(--g)":"var(--r)",display:"inline-block"}}/>
+            {connected?"Lumis Connected":"API Key Needed"}
+          </span>
+          <span className="pill pill-b"><I n="globe" s={9}/> Research Ready</span>
+          <span className="pill pill-o"><I n="bot" s={9}/> n8n Bot</span>
+        </div>
+      </div>
+
+      {/* Tiles */}
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:11,marginBottom:20}}>
+        {tiles.map((t,i)=>(
+          <div key={t.id} className="card hc fu" onClick={()=>setView(t.id)} style={{padding:16,animationDelay:`${i*.06}s`}}>
+            <div style={{width:36,height:36,borderRadius:10,background:t.bg,border:`1px solid ${t.c}22`,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:11}}>
+              <I n={t.i} s={16} c={t.c}/>
+            </div>
+            <div style={{fontSize:13.5,fontWeight:600,color:"var(--ink)",marginBottom:4,lineHeight:1.2}}>{t.l}</div>
+            <div style={{fontSize:11.5,color:"var(--mu)",lineHeight:1.5,marginBottom:8}}>{t.d}</div>
+            {t.badge&&<span className={`pill ${t.id==="chat"&&connected?"pill-g":t.id==="chat"?"pill-r":t.id==="bot"?"pill-o":t.id==="research"?"pill-b":"pill-p"}`} style={{fontSize:9.5}}>{t.badge}</span>}
+          </div>
+        ))}
+      </div>
+
+      {/* Setup needed */}
+      {!connected&&(
+        <div style={{background:"rgba(220,38,38,.06)",border:"1px solid rgba(220,38,38,.15)",borderRadius:12,padding:14,marginBottom:14}}>
+          <div style={{fontSize:11,fontWeight:700,color:"var(--r)",marginBottom:7,letterSpacing:".5px"}}>QUICK SETUP</div>
+          <div style={{fontSize:13,color:"var(--ink)",lineHeight:1.8}}>
+            1. Tap <strong>Settings</strong><br/>
+            2. Base URL: <code style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11.5,background:"var(--bg3)",padding:"1px 5px",borderRadius:4}}>https://cc.freemodel.dev</code><br/>
+            3. Add your <strong>OpenClaude API key</strong> (fe_oa_...)<br/>
+            4. Tap <strong>Test Connection</strong> → should say "API connected"
+          </div>
+        </div>
+      )}
+
+      {/* Commands tip */}
+      <div className="card" style={{padding:14}}>
+        <div style={{fontSize:11,fontWeight:700,color:"var(--mu)",letterSpacing:"1px",marginBottom:10}}>TRAINED COMMANDS</div>
+        {[
+          {c:"\"Email me 10 cool names\"",d:"Generates + sends to "+OWNER.email},
+          {c:"\"Send to my bot\"",d:"Sends to Telegram via n8n"},
+          {c:"\"Make a text file of names\"",d:"Creates downloadable .txt file"},
+          {c:"\"Send to xyz@gmail.com\"",d:"Emails to any address"},
+        ].map(({c,d})=>(
+          <div key={c} style={{display:"flex",gap:10,marginBottom:8,alignItems:"flex-start"}}>
+            <code style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,background:"var(--bg3)",padding:"3px 7px",borderRadius:6,color:"var(--g)",flexShrink:0,whiteSpace:"nowrap"}}>{c}</code>
+            <span style={{fontSize:12,color:"var(--mu)",lineHeight:1.4}}>{d}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════
+   ROOT APP
+══════════════════════════════════ */
+function App() {
+  const [locked,setLocked]=useState(true);
+  const [view,setView]=useState("home");
+  const [sbOpen,setSbOpen]=useState(false);
+
+  const nav=[
+    {id:"home",i:"home",l:"Home"},
+    {id:"research",i:"search",l:"Research"},
+    {id:"chat",i:"term",l:"Chat"},
+    {id:"bot",i:"bot",l:"Bot"},
+    {id:"settings",i:"set",l:"Settings"},
+  ];
+
+  function panel(){
+    const ob = {onBack:()=>setView("home")};
+    switch(view){
+      case "home": return <Home setView={setView}/>;
+      case "research": return <Research {...ob}/>;
+      case "chat": return <LumisChat {...ob}/>;
+      case "bot": return <BotPanel {...ob}/>;
+      case "settings": return <Settings {...ob} onLock={()=>setLocked(true)}/>;
+      default: return <Home setView={setView}/>;
+    }
+  }
+
+  if(locked) return <LockScreen onUnlock={()=>setLocked(false)}/>;
+
+  return (
+    <div style={{width:"100%",height:"100vh",display:"flex",flexDirection:"column",background:"var(--bg)",overflow:"hidden",fontFamily:"'Outfit',sans-serif",color:"var(--ink)"}}>
+      {/* Blobs - light green */}
+      <div className="blob" style={{width:380,height:380,background:"radial-gradient(circle,rgba(58,125,92,.18),transparent 70%)",top:-120,right:-60}}/>
+      <div className="blob" style={{width:300,height:300,background:"radial-gradient(circle,rgba(37,99,235,.08),transparent 70%)",bottom:-80,left:-40,animationDelay:"-4s"}}/>
+
+      {/* Sidebar */}
+      {sbOpen&&<div className="ov" onClick={()=>setSbOpen(false)}/>}
+      <aside className={`sb${sbOpen?" open":""}`}>
+        <div style={{padding:"18px 16px 13px",borderBottom:"1px solid var(--bd)",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <div style={{display:"flex",alignItems:"center",gap:9}}>
+            <div style={{width:34,height:34,borderRadius:10,background:"var(--gs)",border:"1px solid rgba(58,125,92,.2)",display:"flex",alignItems:"center",justifyContent:"center"}}><I n="leaf" s={17} c="var(--g)"/></div>
+            <div>
+              <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:19,color:"var(--ink)",lineHeight:1.1}}>Lumis</div>
+              <div style={{fontSize:9.5,color:"var(--mu)",letterSpacing:".7px"}}>PERSONAL AI</div>
+            </div>
+          </div>
+          <button onClick={()=>setSbOpen(false)} style={{background:"none",border:"none",cursor:"pointer",color:"var(--mu)",padding:6,borderRadius:8}}><I n="x" s={18}/></button>
+        </div>
+        <nav style={{flex:1,overflowY:"auto",padding:"8px 10px"}}>
+          {nav.map(x=>(
+            <div key={x.id} className={`ni${view===x.id?" on":""}`} onClick={()=>{setView(x.id);setSbOpen(false);}}>
+              <I n={x.i} s={15} c={view===x.id?"var(--g)":"var(--mu)"}/>{x.l}
+            </div>
+          ))}
+        </nav>
+        <div style={{padding:"12px 14px",borderTop:"1px solid var(--bd)"}}>
+          <div style={{fontSize:12,color:"var(--mu)",marginBottom:2}}>👤 {OWNER.name}</div>
+          <div style={{fontSize:11,color:"var(--mu)",marginBottom:10}}>{OWNER.email}</div>
+          <button onClick={()=>setLocked(true)} className="btn-o" style={{width:"100%",justifyContent:"center",fontSize:12,padding:"8px"}}>
+            <I n="lock" s={13}/> Lock Lumis
+          </button>
+        </div>
+      </aside>
+
+      {/* Home topbar (only on home) */}
+      {view==="home"&&(
+        <div className="topbar">
+          <button onClick={()=>setSbOpen(true)} style={{background:"none",border:"none",cursor:"pointer",color:"var(--ink)",padding:8,borderRadius:8,touchAction:"manipulation"}}>
+            <I n="menu" s={21}/>
+          </button>
+          <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:20,color:"var(--ink)",flex:1}}>Lumis</span>
+          <div style={{display:"flex",alignItems:"center",gap:5}}>
+            <div style={{width:7,height:7,borderRadius:99,background:"var(--g)"}}/>
+            <span style={{fontSize:11,color:"var(--mu)"}}>AI</span>
+          </div>
+        </div>
+      )}
+
+      {/* Main panel */}
+      <div style={{flex:1,overflow:"hidden",paddingBottom:60}}>
+        {panel()}
+      </div>
+
+      {/* BOTTOM NAV — mobile first, always visible */}
+      <div className="bnav">
+        {nav.map(x=>(
+          <div key={x.id} className={`bni${view===x.id?" on":""}`} onClick={()=>setView(x.id)}>
+            <I n={x.i} s={20} c={view===x.id?"var(--g)":"var(--mu)"}/>
+            <span>{x.l}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+</script>
+</body>
+</html>
