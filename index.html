@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Lumis — Personal AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Cormorant+Garamond:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone@7.23.2/babel.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body,#root{width:100%;height:100vh;overflow:hidden}
+body{font-family:'Outfit',sans-serif;background:#f0f4f1;color:#1a2e22;-webkit-font-smoothing:antialiased}
+:root{
+  --bg:#f0f4f1;--bg2:#e8ede9;--bg3:#dde6de;
+  --g:#3a7d5c;--gl:#5aa87a;--gs:#dff0e8;
+  --b:#2563eb;--bs:rgba(37,99,235,.09);
+  --p:#7c3aed;--ps:rgba(124,58,237,.09);
+  --o:#c4874a;--os:#fdf0e2;
+  --r:#dc2626;--rs:rgba(220,38,38,.09);
+  --ink:#1a2e22;--mu:#5a7a65;
+  --bd:rgba(58,125,92,.18);--card:rgba(240,244,241,.97);
+}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:rgba(58,125,92,.22);border-radius:99px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes msgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes lockIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+@keyframes overlayIn{from{opacity:0}to{opacity:1}}
+.fu{animation:fadeUp .35s ease both}
+.lock{position:fixed;inset:0;background:linear-gradient(160deg,#1a2e22,#0d1f14);display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;animation:lockIn .4s ease}
+.topbar{display:flex;align-items:center;height:52px;padding:0 14px;background:var(--card);border-bottom:1px solid var(--bd);flex-shrink:0;gap:10px;backdrop-filter:blur(12px);position:sticky;top:0;z-index:50}
+.bnav{height:58px;background:var(--card);border-top:1px solid var(--bd);display:flex;align-items:center;justify-content:space-around;flex-shrink:0;padding-bottom:env(safe-area-inset-bottom,0px)}
+.bni{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:7px 14px;border-radius:12px;transition:all .15s;touch-action:manipulation;min-width:52px;user-select:none}
+.bni.on{background:var(--gs)}.bni span{font-size:10px;font-weight:500;color:var(--mu)}.bni.on span{color:var(--g);font-weight:700}
+.panel{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;min-height:0}
+.back{display:inline-flex;align-items:center;gap:5px;padding:7px 14px 7px 9px;background:var(--gs);border:1px solid rgba(58,125,92,.25);border-radius:99px;color:var(--g);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;touch-action:manipulation;font-family:'Outfit',sans-serif;flex-shrink:0}
+.back:active{transform:scale(.94)}
+.ov{position:fixed;inset:0;background:rgba(26,46,34,.5);z-index:199;animation:overlayIn .2s ease;backdrop-filter:blur(3px)}
+.sb{position:fixed;left:0;top:0;bottom:0;width:260px;background:var(--card);border-right:1px solid var(--bd);display:flex;flex-direction:column;z-index:200;transform:translateX(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1)}
+.sb.open{transform:translateX(0)}
+.ni{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13.5px;color:var(--mu);transition:all .15s;border:1px solid transparent;touch-action:manipulation}
+.ni:active{background:var(--gs)}.ni.on{background:var(--gs);color:var(--g);font-weight:600;border-color:rgba(58,125,92,.2)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;box-shadow:0 2px 12px rgba(58,125,92,.06)}
+.hc{transition:transform .15s;cursor:pointer;touch-action:manipulation}.hc:active{transform:scale(.97)}
+.inp{width:100%;background:rgba(240,244,241,.9);border:1px solid var(--bd);border-radius:10px;padding:10px 13px;font-family:'Outfit',sans-serif;font-size:14px;color:var(--ink);outline:none;transition:border-color .2s,box-shadow .2s;-webkit-appearance:none}
+.inp:focus{border-color:var(--g);box-shadow:0 0 0 3px rgba(58,125,92,.1)}.inp::placeholder{color:var(--mu)}
+.btn-g{background:var(--g);color:#fff;border:none;border-radius:10px;padding:10px 18px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:7px;touch-action:manipulation}
+.btn-g:active{transform:scale(.96)}.btn-g:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn-b{background:var(--bs);color:var(--b);border:1px solid rgba(37,99,235,.25);border-radius:10px;padding:10px 18px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:7px;touch-action:manipulation}
+.btn-b:active{transform:scale(.96)}.btn-b:disabled{opacity:.4;cursor:not-allowed}
+.btn-o{background:transparent;color:var(--mu);border:1px solid var(--bd);border-radius:10px;padding:10px 18px;font-family:'Outfit',sans-serif;font-size:14px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:7px;touch-action:manipulation}
+.btn-o:active{background:var(--gs);color:var(--ink)}
+.msg-u{background:var(--g);color:#fff;border-radius:16px 4px 16px 16px;padding:10px 14px;font-size:14px;line-height:1.6;max-width:82%;animation:msgIn .22s ease both;align-self:flex-end;word-break:break-word}
+.msg-a{background:var(--card);border:1px solid var(--bd);border-radius:4px 16px 16px 16px;padding:10px 14px;font-size:14px;line-height:1.65;max-width:88%;animation:msgIn .22s ease both;align-self:flex-start;word-break:break-word;box-shadow:0 2px 8px rgba(58,125,92,.05)}
+.dot-t{width:6px;height:6px;border-radius:99px;background:var(--g);display:inline-block;animation:pulse 1.2s ease infinite}
+.cb{background:var(--bg3);border:1px solid var(--bd);border-radius:10px;padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:12px;overflow-x:auto;line-height:1.65;white-space:pre-wrap;word-break:break-all;color:var(--ink)}
+.pill{display:inline-flex;align-items:center;padding:2px 9px;border-radius:99px;font-size:11px;font-weight:600;gap:3px}
+.pill-g{background:var(--gs);color:var(--g);border:1px solid rgba(58,125,92,.2)}
+.pill-b{background:var(--bs);color:var(--b);border:1px solid rgba(37,99,235,.2)}
+.pill-p{background:var(--ps);color:var(--p);border:1px solid rgba(124,58,237,.2)}
+.pill-o{background:var(--os);color:var(--o);border:1px solid rgba(196,135,74,.2)}
+.pill-r{background:var(--rs);color:var(--r);border:1px solid rgba(220,38,38,.2)}
+.src{background:var(--bg2);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:10px}
+.chat-wrap{display:flex;flex-direction:column;height:100%;overflow:hidden;position:relative}
+.chat-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;min-height:0}
+.chat-inp{flex-shrink:0;padding:10px 14px;border-top:1px solid var(--bd);background:var(--card)}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const {useState,useEffect,useRef} = React;
+
+/* ══ CONFIG — sabhi secrets yahan localStorage mein save honge ══ */
+const SK = "lumis_cfg_v4";
+const MK = "lumis_mem_v2";
+const HK = "lumis_hist_v2";
+
+const loadCfg = () => { try{ return JSON.parse(localStorage.getItem(SK)||"{}"); }catch{ return {}; } };
+const saveCfg = (c) => localStorage.setItem(SK, JSON.stringify(c));
+const loadMem = () => { try{ return JSON.parse(localStorage.getItem(MK)||"[]"); }catch{ return []; } };
+const saveMem = (m) => localStorage.setItem(MK, JSON.stringify(m.slice(-300)));
+const addMem = (text,type="fact",imp=5) => { const m=loadMem(); m.push({id:Date.now()+"",text,type,imp,ts:new Date().toISOString()}); saveMem(m); };
+const loadHist = () => { try{ return JSON.parse(localStorage.getItem(HK)||"[]"); }catch{ return []; } };
+const saveHist = (h) => localStorage.setItem(HK, JSON.stringify(h.slice(-80)));
+
+const getPw = () => { try{ return localStorage.getItem("lumis_pw")||"lumis2024"; }catch{ return "lumis2024"; } };
+const setPwStore = (p) => localStorage.setItem("lumis_pw", p);
+const getSid = () => { try{ let s=sessionStorage.getItem("lsid"); if(!s){s="web_"+Date.now(); sessionStorage.setItem("lsid",s);} return s; }catch{ return "web_"+Date.now(); } };
+
+/* ══ OWNER DATA ══ */
+const OWNER = { name:"Pratik Pandey", email:"pratikpandey318@gmail.com", from:"lumis.chat@gmail.com" };
+
+/* ══ ICONS ══ */
+const I = ({n,s=16,c="currentColor",st={}}) => {
+  const P = {
+    home:"M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z M9 22V12h6v10",
+    search:"M11 17A6 6 0 1011 5a6 6 0 000 12z M21 21l-4.35-4.35",
+    chat:"M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z",
+    bot:"M12 2a2 2 0 012 2c0 .74-.4 1.38-1 1.73V7h3a3 3 0 013 3v8a3 3 0 01-3 3H8a3 3 0 01-3-3v-8a3 3 0 013-3h3V5.73A2 2 0 0110 4a2 2 0 012-2zM9 12a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm6 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3z",
+    set:"M12 15a3 3 0 100-6 3 3 0 000 6z M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z",
+    send:"M22 2L11 13 M22 2l-7 20-4-9-9-4 20-7z",
+    x:"M18 6L6 18M6 6l12 12",menu:"M3 12h18M3 6h18M3 18h18",
+    arrl:"M19 12H5M12 5l-7 7 7 7",
+    lock:"M19 11H5a2 2 0 00-2 2v7a2 2 0 002 2h14a2 2 0 002-2v-7a2 2 0 00-2-2z M7 11V7a5 5 0 0110 0v4",
+    eye:"M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 12a3 3 0 100-6 3 3 0 000 6z",
+    eyeoff:"M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94 M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19 M1 1l22 22",
+    copy:"M20 9h-9a2 2 0 00-2 2v9a2 2 0 002 2h9a2 2 0 002-2v-9a2 2 0 00-2-2z M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1",
+    check:"M20 6L9 17l-5-5",plus:"M12 5v14M5 12h14",
+    trash:"M3 6h18 M19 6l-1 14H8L7 6 M10 11v6 M14 11v6 M9 6V4h6v2",
+    globe:"M12 2a10 10 0 100 20A10 10 0 0012 2z M2 12h20 M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z",
+    zap:"M13 2L3 14h9l-1 8 10-12h-9l1-8z",
+    leaf:"M12 2a9 9 0 019 9c0 5.25-4 9.75-9 11-5-1.25-9-5.75-9-11a9 9 0 019-9z M12 2v20",
+    brain:"M9.5 2A2.5 2.5 0 017 4.5v0A2.5 2.5 0 014.5 7H4a2 2 0 00-2 2v2a2 2 0 002 2h.5A2.5 2.5 0 017 15.5v0A2.5 2.5 0 019.5 18H11v2a2 2 0 004 0v-2h1.5A2.5 2.5 0 0119 15.5v0A2.5 2.5 0 0121.5 13H22a2 2 0 000-4h-.5A2.5 2.5 0 0119 6.5v0A2.5 2.5 0 0116.5 4H15V2a2 2 0 00-4 0v2H9.5z",
+    clip:"M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48",
+    file:"M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z M14 2v6h6",
+    dl:"M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4 M7 10l5 5 5-5 M12 15V3",
+    key:"M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3",
+    mail:"M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z M22 6l-10 7L2 6",
+  };
+  return (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" style={st}>
+      {(P[n]||"").split(" M").map((d,i)=><path key={i} d={i===0?d:"M"+d}/>)}
+    </svg>
+  );
+};
+
+const Spin = ({s=15,c="var(--g)"}) => <div style={{width:s,height:s,border:`2px solid rgba(58,125,92,.18)`,borderTop:`2px solid ${c}`,borderRadius:"50%",animation:"spin .7s linear infinite",flexShrink:0}}/>;
+
+/* ══ DOWNLOAD HELPER ══ */
+window.__dl = (name,enc) => { const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([decodeURIComponent(enc)],{type:"text/plain"})); a.download=name; a.click(); };
+
+/* ══ MARKDOWN ══ */
+function md(t) {
+  if(!t) return "";
+  return t
+    .replace(/```email_action\n?([\s\S]*?)```/g,(_,c)=>{ try{ const d=JSON.parse(c.trim()); return `<div style="background:rgba(37,99,235,.07);border:1px solid rgba(37,99,235,.2);border-radius:10px;padding:12px;margin:8px 0"><div style="font-size:10px;font-weight:700;color:var(--b);letter-spacing:1px;margin-bottom:5px">📧 EMAIL SENT</div><div style="font-size:12.5px;color:var(--ink);line-height:1.6"><b>To:</b> ${d.to}<br/><b>Subject:</b> ${d.subject}</div></div>`; }catch{return "";} })
+    .replace(/```tg_action\n?([\s\S]*?)```/g,(_,c)=>{ try{ const d=JSON.parse(c.trim()); return `<div style="background:rgba(0,136,204,.07);border:1px solid rgba(0,136,204,.2);border-radius:10px;padding:12px;margin:8px 0"><div style="font-size:10px;font-weight:700;color:#0088cc;letter-spacing:1px;margin-bottom:5px">📱 SENT TO TELEGRAM</div><div style="font-size:12.5px;color:var(--ink)">${d.msg?.slice(0,100)}</div></div>`; }catch{return "";} })
+    .replace(/```file_action:([^\n]+)\n([\s\S]*?)```/g,(_,fname,content)=>{ const enc=encodeURIComponent(content); return `<div style="background:rgba(58,125,92,.06);border:1px solid rgba(58,125,92,.2);border-radius:10px;padding:12px;margin:8px 0"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px"><span style="font-size:10px;font-weight:700;color:var(--g)">📄 ${fname}</span><button onclick="window.__dl('${fname}','${enc}')" style="background:var(--g);color:#fff;border:none;border-radius:7px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer">⬇ Download</button></div><pre style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink);white-space:pre-wrap;max-height:80px;overflow:hidden">${content.replace(/</g,"&lt;").slice(0,150)}</pre></div>`; })
+    .replace(/```mem_action\n?([\s\S]*?)```/g,(_,c)=>{ try{ const d=JSON.parse(c.trim()); addMem(d.text,d.type||"fact",d.imp||5); return `<div style="background:rgba(124,58,237,.07);border:1px solid rgba(124,58,237,.2);border-radius:10px;padding:10px 14px;margin:8px 0;font-size:13px;color:var(--p)">🧠 <b>Remembered:</b> ${d.text}</div>`; }catch{return "";} })
+    .replace(/```(\w*)\n?([\s\S]*?)```/g,(_,l,c)=>`<pre class="cb" style="margin:8px 0">${c.replace(/</g,"&lt;").replace(/>/g,"&gt;")}</pre>`)
+    .replace(/`([^`]+)`/g,`<code style="background:var(--bg3);border-radius:4px;padding:1px 5px;font-family:'JetBrains Mono',monospace;font-size:.85em">$1</code>`)
+    .replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>").replace(/\*(.*?)\*/g,"<em>$1</em>")
+    .replace(/^### (.+)$/gm,`<h3 style="font-size:15px;font-weight:600;color:var(--ink);margin:10px 0 4px">$1</h3>`)
+    .replace(/^## (.+)$/gm,`<h2 style="font-size:17px;font-weight:700;color:var(--ink);margin:12px 0 5px">$1</h2>`)
+    .replace(/^- (.+)$/gm,`<div style="display:flex;gap:7px;margin:3px 0"><span style="color:var(--g);font-weight:700;flex-shrink:0">•</span><span>$1</span></div>`)
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g,`<a href="$2" target="_blank" style="color:var(--b);text-decoration:none;border-bottom:1px solid rgba(37,99,235,.3)">$1</a>`)
+    .replace(/\n\n/g,"<br/><br/>").replace(/\n/g,"<br/>");
+}
+
+/* ══ CALL AI — OpenClaude via CORS proxies ══ */
+async function callAI(messages, imageB64, imageMime) {
+  const cfg = loadCfg();
+  const key = cfg.apiKey || "";
+  const base = (cfg.apiBase || "https://cc.freemodel.dev").replace(/\/$/,"");
+  const model = cfg.model || "claude-sonnet-4-6";
+
+  if(!key) return "⚠️ **API key missing!**\n\nSettings → API Key mein apni key daalo (fe_oa_...)";
+
+  // Build system prompt with memory
+  const mem = loadMem();
+  const memTxt = mem.length ? "\n\nMY MEMORY:\n"+mem.map(m=>`- [${m.type}] ${m.text}`).join("\n") : "";
+
+  const sys = `You are Lumis — intelligent personal AI for ${OWNER.name}.
+
+OWNER: ${OWNER.name} | Email: ${OWNER.email} | Send FROM: ${OWNER.from}
+
+AUTONOMOUS ACTIONS (use when needed, no explicit instruction required):
+Email → \`\`\`email_action\n{"to":"x@x.com","subject":"S","body":"B"}\`\`\`
+Telegram → \`\`\`tg_action\n{"msg":"message"}\`\`\`
+File → \`\`\`file_action:name.txt\ncontent\`\`\`
+Memory → \`\`\`mem_action\n{"text":"what","type":"fact","imp":7}\`\`\`
+
+EXAMPLES:
+- "10 names email karo" → generate + email_action to ${OWNER.email}
+- "Bot pe bhej do" → tg_action
+- "Text file mein de do" → file_action
+- "Yaad rakh..." → mem_action + confirm
+
+EXPERTISE: Python, JS, TS, React, Next.js, FastAPI, Node.js, Telegram bots, APIs, DBs. 15+ years.
+PERSONALITY: Warm, expert. Hindi+English mixed OK. Never say "I can't."${memTxt}`;
+
+  const buildContent = (text,img,mime) => img
+    ? [{type:"image",source:{type:"base64",media_type:mime||"image/jpeg",data:img}},{type:"text",text:text||"Analyze this."}]
+    : text;
+
+  const clean = [];
+  for(const m of messages.map((m,i)=>({role:m.role==="system"?"user":m.role, content:i===messages.length-1&&imageB64?buildContent(m.content,imageB64,imageMime):m.content}))){
+    if(m.role==="user"||m.role==="assistant"){
+      if(!clean.length||m.role!==clean[clean.length-1].role) clean.push(m);
+    }
+  }
+
+  const body = JSON.stringify({model,max_tokens:2048,system:sys,messages:clean});
+  const hdrs = {"Content-Type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"};
+
+  // Try 3 endpoints — direct first, then CORS proxies
+  const urls = [
+    `${base}/v1/messages`,
+    `https://corsproxy.io/?${encodeURIComponent(base+"/v1/messages")}`,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(base+"/v1/messages")}`,
+  ];
+
+  for(const url of urls) {
+    try {
+      const res = await fetch(url,{method:"POST",headers:hdrs,body});
+      if(!res.ok){
+        const err=await res.json().catch(()=>({}));
+        const msg=err.error?.message||res.statusText;
+        if(res.status===401) return `⚠️ **Invalid API key (401)**\n\nSettings mein key check karo — \`fe_oa_\` se shuru honi chahiye`;
+        if(res.status===404) return `⚠️ **Wrong URL (404)**\n\nBase URL: \`https://cc.freemodel.dev\`\n\n${msg}`;
+        if(res.status>=500){continue;}
+        return `⚠️ **Error ${res.status}:** ${msg}`;
+      }
+      const d=await res.json();
+      const reply=d.content?.map(b=>b.text||"").join("")||"No response.";
+
+      // Execute email/telegram actions
+      executeActions(reply);
+      return reply;
+    }catch(e){
+      if(url===urls[urls.length-1]) return `⚠️ **Connection failed**\n\nCheck:\n1. Base URL: \`https://cc.freemodel.dev\`\n2. API key correct?\n3. Internet working?\n\nError: ${e.message}`;
+    }
+  }
+  return "⚠️ All connection attempts failed.";
+}
+
+/* ══ EXECUTE ACTIONS ══ */
+async function executeActions(reply) {
+  const cfg=loadCfg();
+
+  // Email via EmailJS or direct Gmail API
+  const emails=[...reply.matchAll(/```email_action\n?([\s\S]*?)```/g)];
+  for(const m of emails){
+    try{
+      const d=JSON.parse(m[1].trim());
+      // If backend URL set, use it
+      if(cfg.backendUrl){
+        await fetch(cfg.backendUrl+"/api/email",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...d,from:OWNER.from,gmailPass:cfg.gmailPass})}).catch(()=>{});
+      }
+    }catch{}
+  }
+
+  // Telegram
+  const tgs=[...reply.matchAll(/```tg_action\n?([\s\S]*?)```/g)];
+  for(const m of tgs){
+    try{
+      const d=JSON.parse(m[1].trim());
+      const token=cfg.telegramToken; const chatId=cfg.telegramOwnerId;
+      if(token&&chatId){
+        await fetch(`https://api.telegram.org/bot${token}/sendMessage`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({chat_id:chatId,text:d.msg,parse_mode:"Markdown"})}).catch(()=>{});
+      }
+    }catch{}
+  }
+}
+
+/* ══ WEB RESEARCH ══ */
+async function doResearch(q){
+  const res=[]; let ans="",abs="";
+  try{
+    const r=await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(q)}&format=json&no_html=1&skip_disambig=1`,{headers:{"User-Agent":"Lumis/2.0"}});
+    const d=await r.json();
+    ans=d.Answer||""; abs=d.Abstract||"";
+    (d.RelatedTopics||[]).slice(0,5).forEach(t=>{if(t.Text&&t.FirstURL)res.push({title:t.Text.slice(0,80),url:t.FirstURL,snippet:t.Text,src:"DuckDuckGo"});});
+    (d.Results||[]).slice(0,3).forEach(r=>{if(r.Text&&r.FirstURL)res.push({title:r.Text.slice(0,80),url:r.FirstURL,snippet:r.Text,src:"DuckDuckGo"});});
+  }catch{}
+  try{
+    const w=await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(q.split(" ").slice(0,3).join("_"))}`,{headers:{"User-Agent":"Lumis/2.0"}});
+    if(w.ok){const d=await w.json();if(d.extract?.length>50)res.unshift({title:d.title,url:d.content_urls?.desktop?.page||"#",snippet:d.extract.slice(0,300),src:"Wikipedia",thumb:d.thumbnail?.source});}
+  }catch{}
+  return {q,ans,abs,res};
+}
+
+/* ══════════════════════════
+   LOCK SCREEN
+══════════════════════════ */
+function Lock({onUnlock}){
+  const [pw,setPw]=useState(""); const [err,setErr]=useState(""); const [show,setShow]=useState(false);
+  function try_(){
+    if(pw===getPw()) onUnlock();
+    else{setErr("Wrong password");setPw("");setTimeout(()=>setErr(""),2000);}
+  }
+  return(
+    <div className="lock">
+      <div style={{textAlign:"center",marginBottom:36,animation:"fadeUp .5s ease"}}>
+        <div style={{width:78,height:78,borderRadius:22,background:"linear-gradient(135deg,rgba(58,125,92,.25),rgba(90,168,122,.15))",border:"1px solid rgba(58,125,92,.3)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 18px"}}>
+          <I n="leaf" s={34} c="#5aa87a"/>
+        </div>
+        <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:46,fontWeight:300,color:"#e8f0ea",letterSpacing:"4px"}}>Lumis</div>
+        <div style={{fontSize:11,color:"rgba(200,230,212,.35)",letterSpacing:"4px",marginTop:6}}>PERSONAL AI</div>
+      </div>
+      <div style={{width:"100%",maxWidth:290,padding:"0 24px",animation:"fadeUp .5s ease .1s both"}}>
+        <div style={{position:"relative",marginBottom:12}}>
+          <input className="inp" type={show?"text":"password"} value={pw} onChange={e=>{setPw(e.target.value);setErr("");}} onKeyDown={e=>e.key==="Enter"&&try_()} placeholder="Password" autoFocus
+            style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(58,125,92,.22)",color:"#e8f0ea",borderRadius:12,padding:"14px 46px 14px 16px",fontSize:15,textAlign:"center",letterSpacing:"3px"}}/>
+          <button onClick={()=>setShow(!show)} style={{position:"absolute",right:13,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",padding:4}}>
+            <I n={show?"eyeoff":"eye"} s={16} c="rgba(200,230,212,.5)"/>
+          </button>
+        </div>
+        {err&&<div style={{color:"#f87171",fontSize:13,textAlign:"center",marginBottom:10}}>{err}</div>}
+        <button onClick={try_} className="btn-g" style={{width:"100%",justifyContent:"center",fontSize:15,padding:"14px",borderRadius:12}}>
+          <I n="zap" s={15} c="#fff"/> Enter Lumis
+        </button>
+        <div style={{textAlign:"center",marginTop:14,fontSize:11,color:"rgba(200,230,212,.25)"}}>Default: lumis2024</div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════
+   LUMIS CHAT
+══════════════════════════ */
+function Chat({onBack}){
+  const [msgs,setMsgs]=useState([]);
+  const [inp,setInp]=useState("");
+  const [loading,setLoading]=useState(false);
+  const [att,setAtt]=useState(null);
+  const [status,setStatus]=useState("");
+  const [copied,setCopied]=useState(null);
+  const [drag,setDrag]=useState(false);
+  const botRef=useRef(null);
+  const inpRef=useRef(null);
+  const fileRef=useRef(null);
+
+  useEffect(()=>{ const h=loadHist(); if(h.length)setMsgs(h); },[]);
+  useEffect(()=>{ botRef.current?.scrollIntoView({behavior:"smooth"}); },[msgs,loading]);
+
+  function handleFile(f){
+    if(!f) return;
+    const reader=new FileReader();
+    reader.onload=ev=>setAtt({b64:ev.target.result.split(",")[1],mime:f.type||"image/jpeg",preview:ev.target.result,name:f.name,isImg:f.type.startsWith("image/")});
+    reader.readAsDataURL(f);
+  }
+
+  async function send(){
+    if((!inp.trim()&&!att)||loading) return;
+    const txt=inp.trim()||(att?.isImg?"Analyze this image.":"File: "+att?.name);
+    setInp(""); const a=att; setAtt(null);
+    const um={role:"user",content:txt,att:a?{preview:a.preview,name:a.name,isImg:a.isImg}:null};
+    const nm=[...msgs,um]; setMsgs(nm); setLoading(true);
+    const apiMsgs=nm.map(m=>({role:m.role,content:m.content}));
+    const reply=await callAI(apiMsgs,a?.isImg?a.b64:null,a?.mime);
+    const fm=[...nm,{role:"assistant",content:reply}]; setMsgs(fm);
+    saveHist(fm.map(m=>({role:m.role,content:m.content})));
+    setLoading(false);
+
+    // Show action status
+    if(reply.includes("email_action"))setStatus("📧 Email sent!");
+    else if(reply.includes("tg_action"))setStatus("📱 Sent to Telegram!");
+    if(reply.includes("_action"))setTimeout(()=>setStatus(""),4000);
+    setTimeout(()=>inpRef.current?.focus(),80);
+  }
+
+  function cp(t,i){navigator.clipboard?.writeText(t);setCopied(i);setTimeout(()=>setCopied(null),1500);}
+  const mem=loadMem();
+  const cfg=loadCfg();
+
+  return(
+    <div className="chat-wrap" onDragOver={e=>{e.preventDefault();setDrag(true);}} onDragLeave={e=>{if(!e.currentTarget.contains(e.relatedTarget))setDrag(false);}} onDrop={e=>{e.preventDefault();setDrag(false);handleFile(e.dataTransfer.files[0]);}}>
+      <div className="topbar">
+        <button className="back" onClick={onBack}><I n="arrl" s={14} c="var(--g)"/> Home</button>
+        <div style={{flex:1,display:"flex",alignItems:"center",gap:8}}>
+          <div style={{width:8,height:8,borderRadius:99,background:cfg.apiKey?"var(--g)":"var(--r)",flexShrink:0}}/>
+          <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:17,color:"var(--ink)"}}>Lumis Chat</span>
+          {mem.length>0&&<span className="pill pill-p" style={{fontSize:9}}><I n="brain" s={9} c="var(--p)"/>{mem.length}</span>}
+        </div>
+        <label htmlFor="lf" style={{background:"var(--gs)",border:"1px solid rgba(58,125,92,.25)",borderRadius:9,padding:"7px 11px",cursor:"pointer",color:"var(--g)",display:"flex",alignItems:"center",gap:5,fontSize:12,fontWeight:600}}>
+          <I n="clip" s={14} c="var(--g)"/>
+          <input id="lf" ref={fileRef} type="file" accept="image/*,.pdf,.txt,.md,.csv,.js,.py,.ts,.json,.docx,.xlsx" style={{display:"none"}} onChange={e=>handleFile(e.target.files[0])}/>
+        </label>
+        <button onClick={()=>{setMsgs([]);saveHist([]);}} style={{background:"none",border:"none",cursor:"pointer",color:"var(--mu)",padding:6,borderRadius:7}}><I n="trash" s={15}/></button>
+      </div>
+
+      {!cfg.apiKey&&<div style={{background:"rgba(220,38,38,.07)",borderBottom:"1px solid rgba(220,38,38,.15)",padding:"9px 16px",fontSize:13,color:"var(--r)",display:"flex",alignItems:"center",gap:8,flexShrink:0}}><I n="key" s={14} c="var(--r)"/><span>API key missing — Settings mein daalo</span></div>}
+      {status&&<div style={{background:"rgba(58,125,92,.08)",borderBottom:"1px solid rgba(58,125,92,.15)",padding:"8px 16px",fontSize:13,color:"var(--g)",flexShrink:0,animation:"fadeUp .2s ease"}}>{status}</div>}
+      {drag&&<div style={{position:"absolute",inset:0,background:"rgba(58,125,92,.1)",border:"2px dashed var(--g)",zIndex:20,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:10,pointerEvents:"none"}}><I n="dl" s={36} c="var(--g)"/><div style={{fontSize:16,fontWeight:600,color:"var(--g)"}}>Drop here</div></div>}
+
+      <div className="chat-msgs">
+        {msgs.length===0&&(
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:320,gap:12,opacity:.55,padding:"0 20px"}}>
+            <div style={{background:"var(--bg3)",border:"1px solid var(--bd)",borderRadius:12,padding:18,width:"100%",maxWidth:300,fontFamily:"'JetBrains Mono',monospace",fontSize:12.5,color:"var(--g)",lineHeight:1.8}}>
+              <div style={{display:"flex",gap:7,marginBottom:12,alignItems:"center"}}>
+                <div style={{width:11,height:11,borderRadius:99,background:"#f87171"}}/><div style={{width:11,height:11,borderRadius:99,background:"#fbbf24"}}/><div style={{width:11,height:11,borderRadius:99,background:"var(--g)"}}/>
+                <span style={{color:"var(--mu)",marginLeft:8,fontSize:11}}>lumis — ai</span>
+              </div>
+              {">"} Hi Pratik! Ready<br/>
+              <span style={{color:"var(--mu)"}}>{">"} {mem.length} memories loaded</span><br/>
+              {">"} Ask anything<span style={{display:"inline-block",width:7,height:13,background:"var(--g)",animation:"blink 1s step-end infinite",verticalAlign:"text-bottom",marginLeft:2}}/>
+            </div>
+            <div style={{fontSize:13,color:"var(--mu)",textAlign:"center",lineHeight:1.7}}>
+              <em>"10 names email karo"</em><br/><em>"Bot pe bhej do"</em><br/><em>"Yaad rakh..."</em> · Upload images
+            </div>
+          </div>
+        )}
+        {msgs.map((m,i)=>(
+          <div key={i} style={{display:"flex",flexDirection:"column",gap:4,alignItems:m.role==="user"?"flex-end":"flex-start"}}>
+            {m.att&&(m.att.isImg
+              ?<img src={m.att.preview} alt={m.att.name} style={{maxWidth:200,maxHeight:160,borderRadius:10,border:"1px solid var(--bd)",objectFit:"contain",alignSelf:"flex-end"}}/>
+              :<div style={{background:"var(--gs)",border:"1px solid rgba(58,125,92,.2)",borderRadius:8,padding:"6px 11px",fontSize:12,color:"var(--g)",display:"flex",alignItems:"center",gap:5,alignSelf:"flex-end"}}><I n="file" s={13} c="var(--g)"/>{m.att.name}</div>
+            )}
+            <div className={m.role==="user"?"msg-u":"msg-a"} dangerouslySetInnerHTML={m.role==="assistant"?{__html:md(m.content)}:undefined}>
+              {m.role==="user"?m.content:undefined}
+            </div>
+            {m.role==="assistant"&&<button onClick={()=>cp(m.content,i)} style={{background:"none",border:"none",cursor:"pointer",color:"var(--mu)",display:"flex",alignItems:"center",gap:4,fontSize:11,padding:"2px 4px"}}><I n={copied===i?"check":"copy"} s={11} c={copied===i?"var(--g)":"var(--mu)"}/>{copied===i?"Copied":"Copy"}</button>}
+          </div>
+        ))}
+        {loading&&<div className="msg-a" style={{display:"flex",alignItems:"center",gap:5,padding:"12px 14px",alignSelf:"flex-start"}}><span className="dot-t" style={{animationDelay:"0s"}}/><span className="dot-t" style={{animationDelay:".2s"}}/><span className="dot-t" style={{animationDelay:".4s"}}/></div>}
+        <div ref={botRef} style={{height:1,flexShrink:0}}/>
+      </div>
+
+      {att&&<div style={{padding:"8px 14px",borderTop:"1px solid var(--bd)",background:"var(--card)",display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
+        {att.isImg?<img src={att.preview} style={{width:36,height:36,borderRadius:7,objectFit:"cover",border:"1px solid var(--bd)"}}/>:<div style={{width:36,height:36,borderRadius:7,background:"var(--gs)",display:"flex",alignItems:"center",justifyContent:"center"}}><I n="file" s={16} c="var(--g)"/></div>}
+        <div style={{flex:1,fontSize:12.5,color:"var(--mu)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{att.name}</div>
+        <button onClick={()=>setAtt(null)} style={{background:"none",border:"none",cursor:"pointer",color:"var(--mu)",padding:4}}><I n="x" s={16}/></button>
+      </div>}
+
+      <div className="chat-inp">
+        <div style={{display:"flex",gap:8,alignItems:"flex-end"}}>
+          <textarea ref={inpRef} className="inp" value={inp} onChange={e=>setInp(e.target.value)}
+            onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();}}}
+            placeholder="Ask Lumis anything…" rows={1}
+            style={{resize:"none",flex:1,minHeight:44,maxHeight:110,overflowY:"auto",borderRadius:12,lineHeight:1.5,fontSize:14}}
+            onInput={e=>{e.target.style.height="auto";e.target.style.height=Math.min(e.target.scrollHeight,110)+"px";}}/>
+          <button className="btn-g" onClick={send} disabled={loading||(!inp.trim()&&!att)} style={{padding:"11px 13px",borderRadius:12,flexShrink:0,justifyContent:"center",height:44}}>
+            {loading?<Spin s={14} c="#fff"/>:<I n="send" s={15} c="#fff"/>}
+          </button>
+        </div>
+        <div style={{fontSize:10.5,color:"var(--mu)",marginTop:4,textAlign:"center"}}>Shift+Enter = new line · 📎 file attach</div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════
+   RESEARCH
+══════════════════════════ */
+function Research({onBack}){
+  const [q,setQ]=useState(""); const [loading,setLoading]=useState(false);
+  const [result,setResult]=useState(null); const [aiSum,setAiSum]=useState(""); const [aiLoad,setAiLoad]=useState(false);
+  async function search(){
+    if(!q.trim()) return; setLoading(true); setResult(null); setAiSum("");
+    const r=await doResearch(q); setResult(r); setLoading(false);
+    if(r.res.length>0){
+      setAiLoad(true);
+      const ctx=r.res.map(x=>x.snippet).join("\n\n");
+      const s=await callAI([{role:"user",content:`Research: "${q}"\n\nSources:\n${ctx}\n\nComprehensive summary please.`}],null,null);
+      setAiSum(s); setAiLoad(false);
+    }
+  }
+  return(
+    <div style={{height:"100%",display:"flex",flexDirection:"column"}}>
+      <div className="topbar"><button className="back" onClick={onBack}><I n="arrl" s={14} c="var(--g)"/> Home</button><span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:17,color:"var(--ink)",flex:1}}>Open Research</span><span className="pill pill-g" style={{fontSize:10}}>Free</span></div>
+      <div className="panel" style={{padding:14}}>
+        <div style={{display:"flex",gap:8,marginBottom:14}}>
+          <div style={{position:"relative",flex:1}}><I n="search" s={14} c="var(--mu)" st={{position:"absolute",left:11,top:"50%",transform:"translateY(-50%)"}}/><input className="inp" style={{paddingLeft:34}} value={q} onChange={e=>setQ(e.target.value)} onKeyDown={e=>e.key==="Enter"&&search()} placeholder="Search Wikipedia, DuckDuckGo, AI…"/></div>
+          <button className="btn-g" onClick={search} disabled={loading||!q.trim()} style={{padding:"9px 15px",flexShrink:0}}>{loading?<Spin s={14} c="#fff"/>:<I n="search" s={14} c="#fff"/>}</button>
+        </div>
+        {!result&&!loading&&<div style={{display:"flex",gap:7,flexWrap:"wrap",marginBottom:12}}>{["Wikipedia","DuckDuckGo","AI Synthesis"].map(x=><span key={x} className="pill pill-g" style={{fontSize:10}}>{x}</span>)}</div>}
+        {loading&&[1,2,3].map(i=><div key={i} style={{background:"var(--bg2)",border:"1px solid var(--bd)",borderRadius:10,padding:14,marginBottom:10,animation:"pulse 1.5s ease infinite",animationDelay:`${i*.12}s`}}><div style={{height:12,background:"var(--bg3)",borderRadius:4,width:"55%",marginBottom:7}}/><div style={{height:10,background:"var(--bg3)",borderRadius:4,width:"88%",marginBottom:5}}/><div style={{height:10,background:"var(--bg3)",borderRadius:4,width:"70%"}}/></div>)}
+        {result&&<div className="fu">
+          {result.ans&&<div style={{background:"var(--gs)",border:"1px solid rgba(58,125,92,.2)",borderRadius:12,padding:14,marginBottom:12}}><div style={{fontSize:10,fontWeight:700,color:"var(--g)",letterSpacing:"1px",marginBottom:5}}>DIRECT ANSWER</div><div style={{fontSize:15,color:"var(--ink)",lineHeight:1.6}}>{result.ans}</div></div>}
+          {(aiSum||aiLoad)&&<div style={{background:"var(--card)",border:"1px solid rgba(124,58,237,.2)",borderRadius:12,padding:14,marginBottom:12}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}><div style={{fontSize:10,fontWeight:700,color:"var(--p)",letterSpacing:"1px"}}>AI SYNTHESIS</div>{aiLoad&&<Spin s={13} c="var(--p)"/>}</div>{aiSum?<div style={{fontSize:13.5,color:"var(--ink)",lineHeight:1.7}} dangerouslySetInnerHTML={{__html:md(aiSum)}}/>:<div style={{fontSize:13,color:"var(--mu)",display:"flex",alignItems:"center",gap:7}}><Spin s={13} c="var(--p)"/>Synthesizing…</div>}</div>}
+          {result.abs&&<div style={{background:"var(--bg2)",border:"1px solid var(--bd)",borderRadius:12,padding:14,marginBottom:12,fontSize:13.5,color:"var(--ink)",lineHeight:1.7}}><div style={{fontSize:10,fontWeight:700,color:"var(--mu)",letterSpacing:"1px",marginBottom:7}}>SUMMARY</div>{result.abs}</div>}
+          <div style={{fontSize:10,fontWeight:700,color:"var(--mu)",letterSpacing:"1px",marginBottom:8}}>SOURCES ({result.res.length})</div>
+          {result.res.map((r,i)=>(
+            <div key={i} className="src"><div style={{display:"flex",gap:10,alignItems:"flex-start"}}>
+              {r.thumb&&<img src={r.thumb} style={{width:42,height:42,borderRadius:7,objectFit:"cover",flexShrink:0,border:"1px solid var(--bd)"}} onError={e=>e.target.style.display="none"}/>}
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{display:"flex",gap:7,alignItems:"center",marginBottom:4}}><a href={r.url} target="_blank" rel="noreferrer" style={{fontSize:13.5,fontWeight:600,color:"var(--b)",textDecoration:"none",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",flex:1}}>{r.title}</a><span className={`pill ${r.src==="Wikipedia"?"pill-b":"pill-o"}`} style={{flexShrink:0,fontSize:9}}>{r.src}</span></div>
+                <div style={{fontSize:12.5,color:"var(--mu)",lineHeight:1.5,display:"-webkit-box",WebkitLineClamp:3,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{r.snippet}</div>
+                <a href={r.url} target="_blank" rel="noreferrer" style={{fontSize:10.5,color:"rgba(37,99,235,.6)",textDecoration:"none",marginTop:4,display:"block",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.url}</a>
+              </div>
+            </div></div>
+          ))}
+          {!result.res.length&&!result.ans&&<div style={{textAlign:"center",color:"var(--mu)",padding:32,fontSize:14}}>No results found.</div>}
+        </div>}
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════
+   TELEGRAM SETUP
+══════════════════════════ */
+function BotSetup({onBack}){
+  const [cfg,setCfg]=useState(()=>loadCfg());
+  const [saved,setSaved]=useState(false);
+  const [wRes,setWRes]=useState(""); const [loading,setLoading]=useState(false);
+
+  function save(){ saveCfg(cfg); setSaved(true); setTimeout(()=>setSaved(false),2000); }
+
+  async function setWebhook(){
+    if(!cfg.telegramToken){setWRes("❌ Token daalo pehle");return;}
+    // Webhook will point to backend URL if set, otherwise show manual instructions
+    if(cfg.backendUrl){
+      setLoading(true);
+      try{
+        const wUrl=cfg.backendUrl.replace(/\/$/,"")+"/api/telegram/webhook";
+        const r=await fetch(`https://api.telegram.org/bot${cfg.telegramToken}/setWebhook`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url:wUrl,allowed_updates:["message"]})});
+        const d=await r.json();
+        setWRes(d.ok?`✅ Webhook set!\n${wUrl}`:`❌ ${d.description}`);
+      }catch(e){setWRes("❌ "+e.message);}
+      setLoading(false);
+    } else {
+      // Without backend, set webhook to show instructions
+      setWRes("⚠️ Backend URL set nahi hai. Manual webhook:\n\nhttps://api.telegram.org/bot"+cfg.telegramToken+"/setWebhook?url=https://AAPKI_VERCEL_URL/api/telegram/webhook\n\nYa phir Backend URL set karo Settings mein.");
+    }
+  }
+
+  async function testToken(){
+    if(!cfg.telegramToken) return;
+    try{const r=await fetch(`https://api.telegram.org/bot${cfg.telegramToken}/getMe`); const d=await r.json(); setWRes(d.ok?`✅ Bot: @${d.result.username}`:"❌ Invalid token");}
+    catch(e){setWRes("❌ "+e.message);}
+  }
+
+  return(
+    <div style={{height:"100%",display:"flex",flexDirection:"column"}}>
+      <div className="topbar"><button className="back" onClick={onBack}><I n="arrl" s={14} c="var(--g)"/> Home</button><span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:17,color:"var(--ink)",flex:1}}>Telegram Bot</span></div>
+      <div className="panel" style={{padding:14}}>
+
+        <div className="card" style={{padding:16,marginBottom:12}}>
+          <div style={{fontSize:11,fontWeight:700,color:"var(--mu)",letterSpacing:"1px",marginBottom:10}}>BOT TOKEN</div>
+          <div style={{marginBottom:8}}><input className="inp" type="password" value={cfg.telegramToken||""} onChange={e=>setCfg({...cfg,telegramToken:e.target.value})} placeholder="From @BotFather — 1234:ABC..."/></div>
+          <div style={{marginBottom:10}}><label style={{fontSize:12,color:"var(--mu)",display:"block",marginBottom:4}}>YOUR TELEGRAM USER ID</label><input className="inp" value={cfg.telegramOwnerId||""} onChange={e=>setCfg({...cfg,telegramOwnerId:e.target.value})} placeholder="Get from @userinfobot"/></div>
+          <div style={{marginBottom:12}}><label style={{fontSize:12,color:"var(--mu)",display:"block",marginBottom:4}}>BACKEND URL (Vercel app URL)</label><input className="inp" value={cfg.backendUrl||""} onChange={e=>setCfg({...cfg,backendUrl:e.target.value})} placeholder="https://yourapp.vercel.app"/><div style={{fontSize:11,color:"var(--mu)",marginTop:4}}>This connects Telegram webhook to your AI backend</div></div>
+          <div style={{display:"flex",gap:8}}>
+            <button onClick={save} className="btn-g" style={{flex:1,justifyContent:"center"}}>{saved?<><I n="check" s={14} c="#fff"/>Saved!</>:<><I n="key" s={14} c="#fff"/>Save</>}</button>
+            <button onClick={testToken} className="btn-b" disabled={!cfg.telegramToken} style={{padding:"9px 13px"}}><I n="check" s={13}/>Test</button>
+            <button onClick={setWebhook} className="btn-b" disabled={loading||!cfg.telegramToken} style={{flex:1,justifyContent:"center"}}>{loading?<Spin s={14}/>:<><I n="bot" s={13}/>Webhook</>}</button>
+          </div>
+          {wRes&&<div style={{marginTop:10,padding:"10px 14px",background:wRes.startsWith("✅")?"var(--gs)":wRes.startsWith("⚠️")?"var(--os)":"rgba(220,38,38,.07)",border:`1px solid ${wRes.startsWith("✅")?"rgba(58,125,92,.2)":wRes.startsWith("⚠️")?"rgba(196,135,74,.2)":"rgba(220,38,38,.2)"}`,borderRadius:10,fontSize:12,color:wRes.startsWith("✅")?"var(--g)":wRes.startsWith("⚠️")?"var(--o)":"var(--r)",whiteSpace:"pre-wrap",wordBreak:"break-all"}}>{wRes}</div>}
+        </div>
+
+        <div className="card" style={{padding:16,marginBottom:12}}>
+          <div style={{fontSize:11,fontWeight:700,color:"var(--g)",letterSpacing:"1px",marginBottom:10}}>STEP BY STEP</div>
+          {[
+            {n:"1",t:"BotFather se token lo",d:"Telegram → @BotFather → /newbot → naam do → token copy karo"},
+            {n:"2",t:"Token save karo",d:"Upar paste karo → Save dabao"},
+            {n:"3",t:"Apna ID lo",d:"Telegram → @userinfobot message karo → ID copy karo"},
+            {n:"4",t:"Vercel pe deploy karo",d:"lumis-v2.zip extract → GitHub → Vercel import → env vars daalo"},
+            {n:"5",t:"Webhook set karo",d:"Vercel URL upar daalo → 'Webhook' button dabao → Done!"},
+            {n:"6",t:"Test karo",d:"Bot ko /start message karo → Lumis AI se reply aana chahiye"},
+          ].map(s=>(
+            <div key={s.n} style={{display:"flex",gap:12,marginBottom:10}}>
+              <div style={{width:24,height:24,borderRadius:99,background:"var(--gs)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"var(--g)",flexShrink:0}}>{s.n}</div>
+              <div><div style={{fontSize:13.5,fontWeight:600,color:"var(--ink)",marginBottom:1}}>{s.t}</div><div style={{fontSize:12.5,color:"var(--mu)",lineHeight:1.5}}>{s.d}</div></div>
+            </div>
+          ))}
+        </div>
+
+        <div className="card" style={{padding:16}}>
+          <div style={{fontSize:11,fontWeight:700,color:"var(--mu)",letterSpacing:"1px",marginBottom:10}}>BOT COMMANDS</div>
+          {["/start — Welcome","/clear — Conversation reset","/status — System check","Kuch bhi likho — AI reply dega"].map(c=><div key={c} style={{fontFamily:"'JetBrains Mono',monospace",fontSize:12,background:"var(--bg3)",borderRadius:8,padding:"7px 10px",marginBottom:6,color:"var(--ink)"}}>{c}</div>)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════
+   SETTINGS
+══════════════════════════ */
+function Settings({onBack,onLock}){
+  const [cfg,setCfg]=useState(()=>loadCfg());
+  const [saved,setSaved]=useState(false);
+  const [showKey,setShowKey]=useState(false);
+  const [newPw,setNewPw]=useState(""); const [cPw,setCPw]=useState(""); const [msg,setMsg]=useState("");
+
+  function save(){ saveCfg(cfg); setSaved(true); setTimeout(()=>setSaved(false),2000); }
+
+  function changePw(){
+    if(newPw.length<4){setMsg("Min 4 chars");return;}
+    if(newPw!==cPw){setMsg("Don't match");return;}
+    setPwStore(newPw); setMsg("✓ Changed!"); setNewPw(""); setCPw("");
+    setTimeout(()=>setMsg(""),2500);
+  }
+
+  async function testAPI(){
+    if(!cfg.apiKey){setMsg("Key daalo pehle");return;}
+    setMsg("Testing…");
+    const r=await callAI([{role:"user",content:"Reply: 'Connected!'"}],null,null);
+    setMsg(r.includes("⚠️")?r.slice(0,100):"✓ "+r.slice(0,60));
+    setTimeout(()=>setMsg(""),5000);
+  }
+
+  return(
+    <div style={{height:"100%",display:"flex",flexDirection:"column"}}>
+      <div className="topbar"><button className="back" onClick={onBack}><I n="arrl" s={14} c="var(--g)"/> Home</button><span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:17,color:"var(--ink)",flex:1}}>Settings</span><button onClick={onLock} className="btn-o" style={{fontSize:12,padding:"7px 11px"}}><I n="lock" s={13}/>Lock</button></div>
+      <div className="panel" style={{padding:14}}>
+
+        <div style={{background:"rgba(37,99,235,.05)",border:"1px solid rgba(37,99,235,.15)",borderRadius:12,padding:14,marginBottom:14,fontSize:13,color:"var(--ink)",lineHeight:1.7}}>
+          🔒 <strong>Safe hai!</strong> API key sirf tumhare browser mein save hoti hai (localStorage). Source code mein nahi. Koi bhi source code dekhega toh sirf empty fields milenge.
+        </div>
+
+        <div className="card" style={{padding:16,marginBottom:12}}>
+          <div style={{fontSize:11,fontWeight:700,color:"var(--g)",letterSpacing:"1px",marginBottom:12}}>🤖 OPENCLAUDE API</div>
+          <div style={{marginBottom:8}}><label style={{fontSize:12,color:"var(--mu)",display:"block",marginBottom:4}}>BASE URL</label><input className="inp" value={cfg.apiBase||"https://cc.freemodel.dev"} onChange={e=>setCfg({...cfg,apiBase:e.target.value})} placeholder="https://cc.freemodel.dev"/></div>
+          <div style={{marginBottom:8}}>
+            <label style={{fontSize:12,color:"var(--mu)",display:"block",marginBottom:4}}>API KEY</label>
+            <div style={{position:"relative"}}>
+              <input className="inp" type={showKey?"text":"password"} value={cfg.apiKey||""} onChange={e=>setCfg({...cfg,apiKey:e.target.value})} placeholder="fe_oa_..." style={{paddingRight:40}}/>
+              <button onClick={()=>setShowKey(!showKey)} style={{position:"absolute",right:11,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",padding:4}}><I n={showKey?"eyeoff":"eye"} s={15} c="var(--mu)"/></button>
+            </div>
+            {cfg.apiKey&&<div style={{fontSize:11,color:"var(--g)",marginTop:3}}>✓ {cfg.apiKey.slice(0,14)}...</div>}
+          </div>
+          <div style={{marginBottom:12}}><label style={{fontSize:12,color:"var(--mu)",display:"block",marginBottom:4}}>MODEL</label>
+            <select className="inp" value={cfg.model||"claude-sonnet-4-6"} onChange={e=>setCfg({...cfg,model:e.target.value})} style={{cursor:"pointer"}}>
+              <option value="claude-sonnet-4-6">claude-sonnet-4-6 (Best)</option>
+              <option value="claude-opus-4-6">claude-opus-4-6 (Powerful)</option>
+              <option value="claude-haiku-4-5-20251001">claude-haiku-4-5-20251001 (Fast)</option>
+            </select>
+          </div>
+          {msg&&<div style={{fontSize:12.5,color:msg.startsWith("✓")?"var(--g)":msg==="Testing…"?"var(--b)":"var(--r)",marginBottom:10,padding:"8px 12px",background:msg.startsWith("✓")?"var(--gs)":msg==="Testing…"?"var(--bs)":"rgba(220,38,38,.07)",borderRadius:8,lineHeight:1.5}}>{msg}</div>}
+          <button onClick={testAPI} className="btn-b" style={{fontSize:13,padding:"8px 14px"}}><I n="zap" s={13}/>Test Connection</button>
+        </div>
+
+        <div className="card" style={{padding:16,marginBottom:12}}>
+          <div style={{fontSize:11,fontWeight:700,color:"var(--p)",letterSpacing:"1px",marginBottom:12}}>🔒 CHANGE PASSWORD</div>
+          <div style={{marginBottom:8}}><input className="inp" type="password" value={newPw} onChange={e=>setNewPw(e.target.value)} placeholder="New password"/></div>
+          <div style={{marginBottom:12}}><input className="inp" type="password" value={cPw} onChange={e=>setCPw(e.target.value)} placeholder="Confirm" onKeyDown={e=>e.key==="Enter"&&changePw()}/></div>
+          {msg&&<div style={{fontSize:12.5,color:msg.startsWith("✓")?"var(--g)":"var(--r)",marginBottom:8}}>{msg}</div>}
+          <button onClick={changePw} className="btn-b" style={{fontSize:13,padding:"8px 14px"}}><I n="lock" s={13}/>Change</button>
+        </div>
+
+        <button onClick={save} className="btn-g" style={{width:"100%",justifyContent:"center",padding:"13px",fontSize:15,marginBottom:8}}>
+          {saved?<><I n="check" s={14} c="#fff"/>Saved!</>:"💾 Save All Settings"}
+        </button>
+        <div style={{fontSize:12,color:"var(--mu)",textAlign:"center",marginBottom:24}}>Settings browser mein save hoti hain — sirf tumhare device pe</div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════
+   MEMORY
+══════════════════════════ */
+function MemView({onBack}){
+  const [mems,setMems]=useState(()=>loadMem());
+  const [add,setAdd]=useState("");
+  function del(id){ const m=mems.filter(x=>x.id!==id); saveMem(m); setMems(m); }
+  function addNew(){ if(!add.trim()) return; addMem(add.trim(),"manual"); setMems(loadMem()); setAdd(""); }
+  return(
+    <div style={{height:"100%",display:"flex",flexDirection:"column"}}>
+      <div className="topbar"><button className="back" onClick={onBack}><I n="arrl" s={14} c="var(--g)"/> Home</button><span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:17,color:"var(--ink)",flex:1}}>Memory</span><span className="pill pill-p"><I n="brain" s={10} c="var(--p)"/>{mems.length}</span></div>
+      <div className="panel" style={{padding:14}}>
+        <div style={{display:"flex",gap:8,marginBottom:14}}>
+          <input className="inp" value={add} onChange={e=>setAdd(e.target.value)} onKeyDown={e=>e.key==="Enter"&&addNew()} placeholder="Add memory…" style={{flex:1}}/>
+          <button className="btn-g" onClick={addNew} style={{padding:"9px 13px"}}><I n="plus" s={14} c="#fff"/></button>
+        </div>
+        {mems.length===0&&<div style={{textAlign:"center",color:"var(--mu)",padding:40,fontSize:13}}>Chat mein <em>"yaad rakh..."</em> kaho!</div>}
+        {[...mems].reverse().map(m=>(
+          <div key={m.id} className="card" style={{padding:"12px 14px",marginBottom:9,display:"flex",alignItems:"flex-start",gap:10}}>
+            <div style={{flex:1}}>
+              <div style={{fontSize:9.5,color:"var(--p)",fontWeight:700,letterSpacing:".8px",marginBottom:3}}>{(m.type||"fact").toUpperCase()}</div>
+              <div style={{fontSize:13.5,color:"var(--ink)",lineHeight:1.5}}>{m.text}</div>
+              <div style={{fontSize:10.5,color:"var(--mu)",marginTop:4}}>{new Date(m.ts).toLocaleDateString()}</div>
+            </div>
+            <button onClick={()=>del(m.id)} style={{background:"none",border:"none",cursor:"pointer",color:"var(--mu)",padding:4,flexShrink:0}}><I n="trash" s={14}/></button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════
+   HOME
+══════════════════════════ */
+function Home({setView}){
+  const cfg=loadCfg(); const mem=loadMem();
+  const tiles=[
+    {id:"research",i:"search",l:"Research",d:"Wikipedia + DuckDuckGo + AI",c:"var(--b)",bg:"var(--bs)",badge:"Free"},
+    {id:"chat",i:"chat",l:"Lumis Chat",d:"AI · images · email · files",c:"var(--g)",bg:"var(--gs)",badge:cfg.apiKey?"Connected":"Setup needed"},
+    {id:"bot",i:"bot",l:"Telegram Bot",d:"Same AI on Telegram",c:"var(--o)",bg:"var(--os)",badge:"n8n optional"},
+    {id:"memory",i:"brain",l:"Memory",d:`${mem.length} items remembered`,c:"var(--p)",bg:"var(--ps)",badge:`${mem.length} items`},
+  ];
+  return(
+    <div className="panel" style={{padding:"18px 16px"}}>
+      <div style={{marginBottom:22}}>
+        <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:8}}>
+          <div style={{width:42,height:42,borderRadius:13,background:"var(--gs)",border:"1px solid rgba(58,125,92,.2)",display:"flex",alignItems:"center",justifyContent:"center"}}><I n="leaf" s={21} c="var(--g)"/></div>
+          <div><div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:30,fontWeight:400,color:"var(--ink)",lineHeight:1}}>Lumis</div><div style={{fontSize:11,color:"var(--mu)"}}>Personal AI · {OWNER.name}</div></div>
+        </div>
+        <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
+          <span className={`pill ${cfg.apiKey?"pill-g":"pill-r"}`}><span style={{width:5,height:5,borderRadius:99,background:cfg.apiKey?"var(--g)":"var(--r)",display:"inline-block"}}/>{cfg.apiKey?"AI Connected":"API Key Needed"}</span>
+          <span className="pill pill-b"><I n="globe" s={9}/>Research Ready</span>
+          {mem.length>0&&<span className="pill pill-p"><I n="brain" s={9} c="var(--p)"/>{mem.length} Memories</span>}
+        </div>
+      </div>
+
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:11,marginBottom:18}}>
+        {tiles.map((t,i)=>(
+          <div key={t.id} className="card hc fu" onClick={()=>setView(t.id)} style={{padding:15,animationDelay:`${i*.06}s`}}>
+            <div style={{width:36,height:36,borderRadius:10,background:t.bg,border:`1px solid ${t.c}22`,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:10}}><I n={t.i} s={16} c={t.c}/></div>
+            <div style={{fontSize:13.5,fontWeight:600,color:"var(--ink)",marginBottom:4,lineHeight:1.2}}>{t.l}</div>
+            <div style={{fontSize:11.5,color:"var(--mu)",lineHeight:1.5,marginBottom:7}}>{t.d}</div>
+            <span className={`pill ${t.id==="chat"&&cfg.apiKey?"pill-g":t.id==="chat"?"pill-r":t.id==="bot"?"pill-o":t.id==="memory"?"pill-p":"pill-b"}`} style={{fontSize:9.5}}>{t.badge}</span>
+          </div>
+        ))}
+      </div>
+
+      {!cfg.apiKey&&(
+        <div style={{background:"rgba(220,38,38,.06)",border:"1px solid rgba(220,38,38,.15)",borderRadius:12,padding:14,marginBottom:14}}>
+          <div style={{fontSize:11,fontWeight:700,color:"var(--r)",marginBottom:7,letterSpacing:".5px"}}>SETUP (2 min)</div>
+          <div style={{fontSize:13,color:"var(--ink)",lineHeight:1.9}}>
+            1. Settings dabao<br/>
+            2. Base URL: <code style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,background:"var(--bg3)",padding:"1px 5px",borderRadius:4}}>https://cc.freemodel.dev</code><br/>
+            3. API Key: <code style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,background:"var(--bg3)",padding:"1px 5px",borderRadius:4}}>fe_oa_6c3f235d...</code><br/>
+            4. Test Connection dabao → ✅
+          </div>
+        </div>
+      )}
+
+      <div className="card" style={{padding:14}}>
+        <div style={{fontSize:11,fontWeight:700,color:"var(--mu)",letterSpacing:"1px",marginBottom:10}}>LUMIS KYA SAMJHEGA</div>
+        {[
+          {t:"Email","d":"\"Names email karo\" → generate + send auto"},
+          {t:"Telegram","d":"\"Bot pe bhej do\" → Telegram pe send"},
+          {t:"File","d":"\"Text file de do\" → download button"},
+          {t:"Memory","d":"\"Yaad rakh...\" → permanently saved"},
+          {t:"Image","d":"Photo upload karo → full analysis"},
+          {t:"Code","d":"Any language, production-ready"},
+        ].map(({t,d})=>(
+          <div key={t} style={{display:"flex",gap:10,marginBottom:7}}>
+            <span className="pill pill-g" style={{fontSize:10,flexShrink:0,alignSelf:"flex-start",marginTop:1}}>{t}</span>
+            <span style={{fontSize:12,color:"var(--mu)",lineHeight:1.4}}>{d}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════
+   ROOT APP
+══════════════════════════ */
+function App(){
+  const [locked,setLocked]=useState(true);
+  const [view,setView]=useState("home");
+  const [sbOpen,setSbOpen]=useState(false);
+
+  const nav=[
+    {id:"home",i:"home",l:"Home"},
+    {id:"research",i:"search",l:"Research"},
+    {id:"chat",i:"chat",l:"Chat"},
+    {id:"bot",i:"bot",l:"Bot"},
+    {id:"settings",i:"set",l:"Settings"},
+  ];
+
+  function panel(){
+    const ob={onBack:()=>setView("home")};
+    switch(view){
+      case "home": return <Home setView={setView}/>;
+      case "research": return <Research {...ob}/>;
+      case "chat": return <Chat {...ob}/>;
+      case "bot": return <BotSetup {...ob}/>;
+      case "memory": return <MemView {...ob}/>;
+      case "settings": return <Settings {...ob} onLock={()=>setLocked(true)}/>;
+      default: return <Home setView={setView}/>;
+    }
+  }
+
+  if(locked) return <Lock onUnlock={()=>setLocked(false)}/>;
+
+  return(
+    <div style={{width:"100%",height:"100vh",display:"flex",flexDirection:"column",background:"var(--bg)",overflow:"hidden",fontFamily:"'Outfit',sans-serif",color:"var(--ink)"}}>
+      <div style={{position:"fixed",inset:0,pointerEvents:"none",zIndex:0}}>
+        <div style={{position:"absolute",width:360,height:360,borderRadius:"50%",background:"radial-gradient(circle,rgba(58,125,92,.16),transparent 70%)",top:-100,right:-60,filter:"blur(70px)",animation:"pulse 8s ease infinite"}}/>
+        <div style={{position:"absolute",width:280,height:280,borderRadius:"50%",background:"radial-gradient(circle,rgba(37,99,235,.07),transparent 70%)",bottom:-80,left:-40,filter:"blur(70px)",animation:"pulse 10s ease infinite",animationDelay:"-4s"}}/>
+      </div>
+
+      {sbOpen&&<div className="ov" onClick={()=>setSbOpen(false)}/>}
+      <aside className={`sb${sbOpen?" open":""}`}>
+        <div style={{padding:"18px 16px 13px",borderBottom:"1px solid var(--bd)",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <div style={{display:"flex",alignItems:"center",gap:9}}>
+            <div style={{width:34,height:34,borderRadius:10,background:"var(--gs)",border:"1px solid rgba(58,125,92,.2)",display:"flex",alignItems:"center",justifyContent:"center"}}><I n="leaf" s={17} c="var(--g)"/></div>
+            <div><div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:19,color:"var(--ink)",lineHeight:1.1}}>Lumis</div><div style={{fontSize:9.5,color:"var(--mu)",letterSpacing:".7px"}}>PERSONAL AI</div></div>
+          </div>
+          <button onClick={()=>setSbOpen(false)} style={{background:"none",border:"none",cursor:"pointer",color:"var(--mu)",padding:6,borderRadius:8}}><I n="x" s={18}/></button>
+        </div>
+        <nav style={{flex:1,overflowY:"auto",padding:"8px 10px"}}>
+          {[...nav,{id:"memory",i:"brain",l:"Memory"}].map(x=>(
+            <div key={x.id} className={`ni${view===x.id?" on":""}`} onClick={()=>{setView(x.id);setSbOpen(false);}}><I n={x.i} s={15} c={view===x.id?"var(--g)":"var(--mu)"}/>{x.l}</div>
+          ))}
+        </nav>
+        <div style={{padding:"12px 14px",borderTop:"1px solid var(--bd)"}}>
+          <div style={{fontSize:12,color:"var(--mu)",marginBottom:6}}>👤 {OWNER.name}</div>
+          <button onClick={()=>setLocked(true)} className="btn-o" style={{width:"100%",justifyContent:"center",fontSize:12,padding:"8px"}}><I n="lock" s={13}/>Lock</button>
+        </div>
+      </aside>
+
+      <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",position:"relative",zIndex:1,minHeight:0}}>
+        {view==="home"&&(
+          <div className="topbar">
+            <button onClick={()=>setSbOpen(true)} style={{background:"none",border:"none",cursor:"pointer",color:"var(--ink)",padding:8,borderRadius:8,touchAction:"manipulation"}}><I n="menu" s={21}/></button>
+            <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:20,color:"var(--ink)",flex:1}}>Lumis</span>
+            <div style={{display:"flex",alignItems:"center",gap:5}}><div style={{width:7,height:7,borderRadius:99,background:"var(--g)"}}/><span style={{fontSize:11,color:"var(--mu)"}}>AI</span></div>
+          </div>
+        )}
+        <div style={{flex:1,overflow:"hidden",display:"flex",flexDirection:"column",minHeight:0}}>
+          {panel()}
+        </div>
+      </div>
+
+      <div className="bnav" style={{position:"relative",zIndex:1}}>
+        {nav.map(x=>(
+          <div key={x.id} className={`bni${view===x.id?" on":""}`} onClick={()=>setView(x.id)}>
+            <I n={x.i} s={20} c={view===x.id?"var(--g)":"var(--mu)"}/>
+            <span>{x.l}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+</script>
+</body>
+</html>
+
