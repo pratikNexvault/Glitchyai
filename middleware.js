@@ -42,7 +42,7 @@ const LOGIN_PAGE = `<!doctype html>
     <div class="dot"></div>
     <h1>Lumis AI</h1>
     <p>Private assistant. Enter the password to continue.</p>
-    <input type="password" id="pw" placeholder="Password" autofocus autocomplete="current-password" />
+    <input type="password" id="pw" placeholder="Password" autofocus autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" />
     <button type="submit" id="btn">Unlock</button>
     <div id="err"></div>
   </form>
@@ -60,7 +60,7 @@ const LOGIN_PAGE = `<!doctype html>
       const res = await fetch('/api/data?action=login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: pw.value }),
+        body: JSON.stringify({ password: pw.value.trim() }),
       });
       if (res.ok) {
         location.reload();
