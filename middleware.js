@@ -62,15 +62,17 @@ const LOGIN_PAGE = `<!doctype html>
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password: pw.value.trim() }),
       });
+      let data = {};
+      try { data = await res.json(); } catch {}
       if (res.ok) {
         location.reload();
       } else {
-        err.textContent = 'Incorrect password.';
+        err.textContent = (data && data.error) ? data.error + ' (status ' + res.status + ')' : ('Login failed — status ' + res.status);
         btn.disabled = false;
         btn.textContent = 'Unlock';
       }
-    } catch {
-      err.textContent = 'Something went wrong. Try again.';
+    } catch (e) {
+      err.textContent = 'Network error: ' + (e && e.message ? e.message : 'could not reach the server.');
       btn.disabled = false;
       btn.textContent = 'Unlock';
     }
