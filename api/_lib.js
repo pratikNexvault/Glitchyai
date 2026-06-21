@@ -6,10 +6,10 @@ export const COOKIE_NAME = "lumis_session";
 
 // ---- Password (hardcoded, but only as a salted PBKDF2 hash — the actual
 // password "lumisz197" is not stored anywhere in this codebase). -----------
-const PASSWORD_SALT_HEX = "3954d78bfc4a58206eb24906704a3978";
+const PASSWORD_SALT_HEX = "d3a65a7ba0741a207dcf2c8e697d029c";
 const PASSWORD_HASH_HEX =
-  "8c872f952892ae68130840c77c14c5a2762b580256deb7dbf43b5457a7b90c62";
-const PASSWORD_ITERATIONS = 150000;
+  "a7a82868a38661e8887fce759acc577c9b71bc556f70f492c03e504d2c9a0e55";
+const PASSWORD_ITERATIONS = 10000;
 
 function hexToBytes(hex) {
   const bytes = new Uint8Array(hex.length / 2);
