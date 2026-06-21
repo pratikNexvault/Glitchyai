@@ -1,0 +1,9 @@
+{
+  "name": "lumis-ai",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Lumis AI — Prateek Pandey's personal AI assistant.",
+  "dependencies": {
+    "nodemailer": "^6.9.14"
+  }
+}

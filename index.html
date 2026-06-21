@@ -1,0 +1,587 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Lumis AI</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,500;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+
+<style>
+:root{
+  --canvas:#FAFAF7;
+  --surface:#FFFFFF;
+  --surface-soft:#F3F1EC;
+  --ink:#16181C;
+  --ink-soft:#6B6E76;
+  --line:#E8E5DE;
+  --glow:#D9A441;
+  --glow-deep:#B9842B;
+  --glow-soft:#F6E3BD;
+  --font-display:'Fraunces',serif;
+  --font-sans:'Plus Jakarta Sans',ui-sans-serif,system-ui,sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{font-family:var(--font-sans);background:var(--canvas);color:var(--ink);-webkit-font-smoothing:antialiased;}
+textarea{font-family:inherit;}
+button{font-family:inherit;cursor:pointer;border:none;background:none;}
+::selection{background:var(--glow-soft);}
+*{scrollbar-width:thin;scrollbar-color:var(--line) transparent;}
+*::-webkit-scrollbar{width:8px;height:8px;}
+*::-webkit-scrollbar-thumb{background:var(--line);border-radius:9999px;}
+*::-webkit-scrollbar-track{background:transparent;}
+
+#app{display:flex;height:100vh;height:100dvh;overflow:hidden;}
+
+.backdrop{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:30;opacity:0;pointer-events:none;transition:opacity .25s ease;}
+.backdrop.show{opacity:1;pointer-events:auto;}
+
+.sidebar{
+  position:fixed;inset-block:0;left:0;z-index:40;width:280px;height:100%;
+  display:flex;flex-direction:column;background:rgba(255,255,255,.75);backdrop-filter:blur(20px);
+  border-right:1px solid var(--line);transform:translateX(-100%);transition:transform .3s ease;
+}
+.sidebar.open{transform:translateX(0);}
+
+.brand{display:flex;align-items:center;justify-content:space-between;padding:20px 20px 0;}
+.brand-mark{display:flex;align-items:center;gap:10px;}
+.brand-dot{position:relative;width:28px;height:28px;flex-shrink:0;}
+.brand-dot::before{
+  content:'';position:absolute;inset:0;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #F3CE85, var(--glow) 60%, var(--glow-deep));
+  box-shadow:0 0 22px -2px rgba(217,164,65,.55);animation:lumisBreathe 2.6s ease-in-out infinite;
+}
+.brand-text{display:flex;flex-direction:column;line-height:1.1;}
+.brand-name{font-family:var(--font-display);font-style:italic;font-size:1.2rem;}
+.brand-tagline{font-size:.62rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);}
+.icon-btn{display:flex;align-items:center;justify-content:center;padding:6px;border-radius:8px;color:var(--ink-soft);}
+.icon-btn:hover{background:var(--surface-soft);}
+.icon-btn svg{width:18px;height:18px;}
+
+.new-chat-wrap{padding:18px 16px 0;}
+.new-chat-btn{
+  display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border-radius:14px;
+  border:1px solid var(--line);background:#fff;font-size:.875rem;font-weight:500;color:var(--ink);
+  box-shadow:0 1px 2px rgba(0,0,0,.04);transition:border-color .2s,color .2s;
+}
+.new-chat-btn:hover{border-color:var(--glow);color:var(--glow-deep);}
+.new-chat-btn svg{width:16px;height:16px;}
+
+.search-wrap{padding:12px 16px 0;}
+.search-box{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.7);}
+.search-box svg{width:15px;height:15px;color:var(--ink-soft);flex-shrink:0;}
+.search-box input{flex:1;border:none;outline:none;background:transparent;font-size:.875rem;color:var(--ink);}
+.search-box input::placeholder{color:var(--ink-soft);}
+
+.conv-list-wrap{flex:1;overflow-y:auto;padding:16px 16px;display:flex;flex-direction:column;}
+.conv-label{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-soft);padding:0 4px 8px;}
+.conv-items{display:flex;flex-direction:column;gap:3px;}
+.conv-item{display:block;width:100%;text-align:left;padding:9px 10px;border-radius:10px;font-size:.85rem;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.conv-item:hover{background:var(--surface-soft);}
+.conv-item.active{background:var(--surface-soft);color:var(--glow-deep);font-weight:500;}
+.conv-empty{height:120px;display:flex;align-items:center;justify-content:center;text-align:center;border:1px dashed var(--line);border-radius:14px;padding:0 16px;color:var(--ink-soft);font-size:.85rem;}
+
+.sidebar-footer{padding:14px 20px;border-top:1px solid var(--line);font-size:.72rem;color:var(--ink-soft);display:flex;justify-content:space-between;align-items:center;}
+
+.main{flex:1;display:flex;flex-direction:column;min-width:0;}
+.header{
+  position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:10px;padding:10px 16px;
+  border-bottom:1px solid var(--line);background:rgba(255,255,255,.7);backdrop-filter:blur(10px);
+}
+#menuBtn{display:none;}
+
+.model-switch{display:flex;align-items:center;gap:2px;padding:3px;border-radius:999px;border:1px solid var(--line);background:#fff;overflow-x:auto;max-width:100%;}
+.model-opt{flex-shrink:0;padding:6px 12px;border-radius:999px;font-size:.78rem;font-weight:500;color:var(--ink-soft);white-space:nowrap;transition:background .15s,color .15s;}
+.model-opt:hover{color:var(--ink);}
+.model-opt.active{background:var(--ink);color:#fff;}
+
+.messages{flex:1;overflow-y:auto;}
+.messages-inner{max-width:760px;margin:0 auto;padding:24px 16px 8px;}
+
+.msg-row{display:flex;gap:12px;margin-bottom:26px;animation:lumisFadeIn .35s ease-out;}
+.msg-row.user{justify-content:flex-end;}
+
+.avatar{
+  position:relative;width:24px;height:24px;border-radius:50%;flex-shrink:0;margin-top:3px;
+  background:radial-gradient(circle at 35% 30%, #F3CE85, var(--glow) 60%, var(--glow-deep));
+  box-shadow:0 0 16px -2px rgba(217,164,65,.5);
+}
+.msg-row.thinking .avatar{animation:lumisBreathe 2s ease-in-out infinite;}
+
+.bubble-user{max-width:80%;background:var(--ink);color:#fff;border-radius:18px 18px 6px 18px;padding:10px 16px;font-size:.95rem;line-height:1.55;white-space:pre-wrap;word-break:break-word;}
+.bubble-assistant{flex:1;min-width:0;font-size:.95rem;line-height:1.7;}
+.bubble-assistant > * + *{margin-top:.85em;}
+.bubble-assistant ul,.bubble-assistant ol{padding-left:1.4em;}
+.bubble-assistant ul{list-style:disc;}
+.bubble-assistant ol{list-style:decimal;}
+.bubble-assistant a{color:var(--glow-deep);text-decoration:underline;text-decoration-color:var(--glow-soft);}
+.bubble-assistant blockquote{border-left:2px solid var(--glow);padding-left:.9em;color:var(--ink-soft);}
+.bubble-assistant table{width:100%;border-collapse:collapse;font-size:.875rem;}
+.bubble-assistant th,.bubble-assistant td{border:1px solid var(--line);padding:.4em .7em;text-align:left;}
+.bubble-assistant th{background:var(--surface-soft);}
+.bubble-assistant code:not(pre code){background:var(--surface-soft);padding:2px 6px;border-radius:6px;font-family:var(--font-mono);font-size:.85em;}
+.msg-row.streaming .bubble-assistant::after{content:'';display:inline-block;width:2px;height:1em;background:var(--ink-soft);margin-left:2px;vertical-align:middle;animation:lumisCursor 1s steps(2) infinite;}
+
+.model-tag{font-size:.68rem;font-family:var(--font-mono);color:var(--ink-soft);margin-bottom:2px;letter-spacing:.02em;}
+.sources-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
+.source-pill{display:inline-flex;align-items:center;max-width:220px;padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:.75rem;color:var(--ink-soft);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.source-pill:hover{border-color:var(--glow);color:var(--glow-deep);}
+
+.dots{display:none;align-items:center;gap:4px;height:22px;margin-top:4px;}
+.msg-row.thinking .dots{display:flex;}
+.msg-row.thinking .bubble-assistant{display:none;}
+.dots span{width:6px;height:6px;border-radius:50%;background:var(--ink-soft);animation:lumisDot 1.2s ease-in-out infinite;}
+.dots span:nth-child(2){animation-delay:.15s;}
+.dots span:nth-child(3){animation-delay:.3s;}
+
+.code-block{border:1px solid var(--line);border-radius:14px;overflow:hidden;margin:.4em 0;background:#fff;}
+.code-bar{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;background:var(--surface-soft);font-size:.72rem;color:var(--ink-soft);font-family:var(--font-mono);}
+.copy-btn{display:flex;align-items:center;gap:5px;color:var(--ink-soft);font-size:.72rem;font-family:var(--font-sans);}
+.copy-btn:hover{color:var(--ink);}
+.copy-btn svg{width:13px;height:13px;}
+.code-block pre{margin:0;padding:12px;overflow-x:auto;font-size:.8rem;line-height:1.6;}
+.code-block pre code.hljs{background:transparent;padding:0;}
+
+.composer-wrap{padding:8px 16px 18px;}
+.composer{max-width:760px;margin:0 auto;display:flex;align-items:flex-end;gap:8px;padding:8px;border-radius:20px;border:1px solid var(--line);background:rgba(255,255,255,.8);backdrop-filter:blur(10px);box-shadow:0 1px 3px rgba(0,0,0,.04);}
+#input{flex:1;resize:none;border:none;outline:none;background:transparent;font-size:.95rem;line-height:1.5;padding:8px 8px;max-height:200px;color:var(--ink);font-family:var(--font-sans);}
+#input::placeholder{color:var(--ink-soft);}
+.send-btn{flex-shrink:0;width:36px;height:36px;border-radius:50%;background:var(--glow);color:#fff;display:flex;align-items:center;justify-content:center;transition:opacity .2s;}
+.send-btn:disabled{opacity:.3;cursor:default;}
+.send-btn svg{width:17px;height:17px;}
+
+@keyframes lumisBreathe{0%,100%{transform:scale(1);opacity:.85;}50%{transform:scale(1.15);opacity:1;}}
+@keyframes lumisFadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+@keyframes lumisCursor{0%,50%{opacity:1;}50.01%,100%{opacity:0;}}
+@keyframes lumisDot{0%,80%,100%{opacity:.3;transform:scale(.8);}40%{opacity:1;transform:scale(1);}}
+
+@media (min-width:769px){
+  .sidebar{position:relative;transform:none;background:rgba(255,255,255,.55);}
+  .backdrop{display:none;}
+  #closeBtn{display:none;}
+}
+@media (max-width:768px){
+  #menuBtn{display:flex;}
+  .model-opt{padding:6px 10px;font-size:.74rem;}
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="backdrop" id="backdrop"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark">
+        <span class="brand-dot"></span>
+        <span class="brand-text">
+          <span class="brand-name">Lumis AI</span>
+          <span class="brand-tagline">Adaptive Intelligence Layer</span>
+        </span>
+      </div>
+      <button class="icon-btn" id="closeBtn" aria-label="Close sidebar"><i data-lucide="x"></i></button>
+    </div>
+
+    <div class="new-chat-wrap">
+      <button class="new-chat-btn" id="newChatBtn"><i data-lucide="plus"></i> New chat</button>
+    </div>
+
+    <div class="search-wrap">
+      <div class="search-box">
+        <i data-lucide="search"></i>
+        <input type="text" id="searchInput" placeholder="Search chats" />
+      </div>
+    </div>
+
+    <div class="conv-list-wrap">
+      <p class="conv-label">Conversations</p>
+      <div class="conv-items" id="convList">
+        <div class="conv-empty">No conversations yet — start chatting and they&rsquo;ll show up here.</div>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <span>Prateek Pandey</span>
+      <span>Lumis Runtime</span>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="header">
+      <button class="icon-btn" id="menuBtn" aria-label="Open sidebar"><i data-lucide="menu"></i></button>
+      <div class="model-switch" id="modelSwitch">
+        <button class="model-opt active" data-provider="auto">Auto</button>
+        <button class="model-opt" data-provider="orion">✨ ORION</button>
+        <button class="model-opt" data-provider="nova">✨ NOVA</button>
+        <button class="model-opt" data-provider="infinity">✨ INFINITY</button>
+      </div>
+    </header>
+
+    <div class="messages" id="messagesEl">
+      <div class="messages-inner" id="messagesInner"></div>
+    </div>
+
+    <div class="composer-wrap">
+      <div class="composer">
+        <textarea id="input" rows="1" placeholder="Message Lumis AI..."></textarea>
+        <button class="send-btn" id="sendBtn" aria-label="Send message"><i data-lucide="arrow-up"></i></button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<script>
+// ---- Greeting system: time-aware, varied, never feels repetitive ----------
+const GREETINGS = {
+  morning: ["Good morning, Prateek.", "Morning. Ready when you are.", "Systems online — good morning.", "Rise and build, Prateek.", "Good morning. Let's make today count."],
+  afternoon: ["Good afternoon, Prateek.", "Welcome back.", "Ready for today's work?", "Your workspace is ready.", "Good afternoon — what are we building?"],
+  evening: ["Good evening, Prateek.", "Nice to see you again.", "Evening. Let's build something amazing today.", "Welcome home.", "Good evening — what's on your mind?"],
+  night: ["Still up? Let's get it done.", "Late night session — I'm here.", "Burning the midnight oil, Prateek?", "Intelligence initialized. Let's go.", "Working late — happy to help."],
+};
+
+function pickGreeting() {
+  const hour = new Date().getHours();
+  const slot = hour < 5 ? "night" : hour < 12 ? "morning" : hour < 17 ? "afternoon" : hour < 22 ? "evening" : "night";
+  const pool = GREETINGS[slot];
+  return "👋 " + pool[Math.floor(Math.random() * pool.length)];
+}
+
+let conversationId = null;
+let messages = [];
+let isStreaming = false;
+let selectedProvider = "auto";
+
+const messagesInner = document.getElementById('messagesInner');
+const messagesEl = document.getElementById('messagesEl');
+const input = document.getElementById('input');
+const sendBtn = document.getElementById('sendBtn');
+const sidebar = document.getElementById('sidebar');
+const backdrop = document.getElementById('backdrop');
+const menuBtn = document.getElementById('menuBtn');
+const closeBtn = document.getElementById('closeBtn');
+const newChatBtn = document.getElementById('newChatBtn');
+const convList = document.getElementById('convList');
+const searchInput = document.getElementById('searchInput');
+const modelSwitch = document.getElementById('modelSwitch');
+
+marked.setOptions({ gfm: true, breaks: true });
+
+function uid() {
+  return (crypto.randomUUID) ? crypto.randomUUID() : Math.random().toString(36).slice(2);
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : String(str);
+  return div.innerHTML;
+}
+
+function safeUrl(url) {
+  try {
+    const u = new URL(url);
+    if (u.protocol === 'http:' || u.protocol === 'https:') return u.href;
+  } catch {}
+  return '#';
+}
+
+function renderMarkdown(text) {
+  return DOMPurify.sanitize(marked.parse(text));
+}
+
+function renderSources(sources) {
+  if (!sources || !sources.length) return '';
+  const pills = sources.map((s) => `<a href="${safeUrl(s.url)}" target="_blank" rel="noopener" class="source-pill">${escapeHtml(s.title || s.url)}</a>`).join('');
+  return `<div class="sources-row">${pills}</div>`;
+}
+
+function renderModelTag(label) {
+  if (!label) return '';
+  const names = { orion: 'ORION', nova: 'NOVA', infinity: 'INFINITY' };
+  return `<div class="model-tag">⚡ Routed to ${escapeHtml(names[label] || label.toUpperCase())}</div>`;
+}
+
+function scrollToBottom() {
+  messagesEl.scrollTo({ top: messagesEl.scrollHeight, behavior: 'smooth' });
+}
+
+function enhanceCodeBlocks(container) {
+  container.querySelectorAll('pre code').forEach((codeEl) => {
+    hljs.highlightElement(codeEl);
+    const pre = codeEl.parentElement;
+    if (pre.parentElement.classList.contains('code-block')) return;
+    const lang = (codeEl.className.match(/language-(\w+)/) || [null, 'text'])[1];
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'code-block';
+    const bar = document.createElement('div');
+    bar.className = 'code-bar';
+    bar.innerHTML = '<span>' + lang + '</span><button class="copy-btn"><i data-lucide="copy"></i><span>Copy</span></button>';
+
+    pre.parentElement.insertBefore(wrapper, pre);
+    wrapper.appendChild(bar);
+    wrapper.appendChild(pre);
+
+    bar.querySelector('.copy-btn').addEventListener('click', () => {
+      navigator.clipboard.writeText(codeEl.textContent);
+      const btn = bar.querySelector('.copy-btn');
+      btn.innerHTML = '<i data-lucide="check"></i><span>Copied</span>';
+      lucide.createIcons();
+      setTimeout(() => {
+        btn.innerHTML = '<i data-lucide="copy"></i><span>Copy</span>';
+        lucide.createIcons();
+      }, 1500);
+    });
+  });
+  lucide.createIcons();
+}
+
+function createMessageEl(msg) {
+  const row = document.createElement('div');
+  row.className = 'msg-row ' + msg.role;
+  row.dataset.id = msg.id;
+
+  if (msg.role === 'assistant') {
+    const avatar = document.createElement('span');
+    avatar.className = 'avatar';
+    row.appendChild(avatar);
+  }
+
+  const bubble = document.createElement('div');
+  bubble.className = msg.role === 'user' ? 'bubble-user' : 'bubble-assistant';
+  if (msg.role === 'user') {
+    bubble.textContent = msg.content;
+  } else if (msg.content) {
+    bubble.innerHTML = renderModelTag(msg.modelLabel) + renderSources(msg.sources) + renderMarkdown(msg.content);
+    enhanceCodeBlocks(bubble);
+  }
+  row.appendChild(bubble);
+
+  if (msg.role === 'assistant') {
+    const dots = document.createElement('div');
+    dots.className = 'dots';
+    dots.innerHTML = '<span></span><span></span><span></span>';
+    row.appendChild(dots);
+  }
+
+  messagesInner.appendChild(row);
+  scrollToBottom();
+  return { row, bubble };
+}
+
+// Strips any leading <<<MODEL>>>...<<<END_MODEL>>> / <<<SOURCES>>>...<<<END_SOURCES>>>
+// markers from the raw stream buffer, however many chunks they're split across.
+function stripLeadingMarkers(raw) {
+  let rest = raw;
+  let model = null;
+  let sources = null;
+  let pending = false;
+
+  while (true) {
+    if (rest.startsWith('<<<MODEL>>>')) {
+      const end = rest.indexOf('<<<END_MODEL>>>');
+      if (end === -1) { pending = true; break; }
+      model = rest.slice('<<<MODEL>>>'.length, end);
+      rest = rest.slice(end + '<<<END_MODEL>>>'.length);
+      continue;
+    }
+    if (rest.startsWith('<<<SOURCES>>>')) {
+      const end = rest.indexOf('<<<END_SOURCES>>>');
+      if (end === -1) { pending = true; break; }
+      try { sources = JSON.parse(rest.slice('<<<SOURCES>>>'.length, end)); } catch { sources = []; }
+      rest = rest.slice(end + '<<<END_SOURCES>>>'.length);
+      continue;
+    }
+    break;
+  }
+  return { model, sources, rest, pending };
+}
+
+function updateSendState() {
+  sendBtn.disabled = !input.value.trim() || isStreaming;
+}
+
+function autoResize() {
+  input.style.height = 'auto';
+  input.style.height = Math.min(input.scrollHeight, 200) + 'px';
+}
+
+function openSidebar() { sidebar.classList.add('open'); backdrop.classList.add('show'); }
+function closeSidebar() { sidebar.classList.remove('open'); backdrop.classList.remove('show'); }
+
+function maybeSummarizeOutgoing() {
+  if (conversationId && messages.length >= 3) {
+    fetch('/api/data?action=summarize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ conversationId }),
+    }).catch(() => {});
+  }
+}
+
+function newChat() {
+  maybeSummarizeOutgoing();
+  conversationId = uid();
+  messages = [];
+  messagesInner.innerHTML = '';
+  const greeting = { id: uid(), role: 'assistant', content: pickGreeting() };
+  messages.push(greeting);
+  createMessageEl(greeting);
+  closeSidebar();
+  refreshConversationList(searchInput.value.trim());
+}
+
+async function loadConversation(id) {
+  try {
+    const res = await fetch('/api/data?action=messages&conversation_id=' + encodeURIComponent(id));
+    if (!res.ok) return;
+    const data = await res.json();
+    conversationId = id;
+    messages = (data.messages || []).map((m) => ({ id: uid(), role: m.role, content: m.content }));
+    messagesInner.innerHTML = '';
+    messages.forEach((m) => createMessageEl(m));
+    closeSidebar();
+    refreshConversationList(searchInput.value.trim());
+  } catch {}
+}
+
+async function refreshConversationList(query) {
+  try {
+    const q = query ? '&q=' + encodeURIComponent(query) : '';
+    const res = await fetch('/api/data?action=conversations' + q);
+    if (!res.ok) return;
+    const data = await res.json();
+    renderConversationList(data.conversations || []);
+  } catch {}
+}
+
+function renderConversationList(list) {
+  if (!list.length) {
+    convList.innerHTML = '<div class="conv-empty">No conversations yet — start chatting and they&rsquo;ll show up here.</div>';
+    return;
+  }
+  convList.innerHTML = '';
+  list.forEach((c) => {
+    const item = document.createElement('button');
+    item.className = 'conv-item' + (c.id === conversationId ? ' active' : '');
+    item.textContent = c.title || 'Untitled chat';
+    item.addEventListener('click', () => loadConversation(c.id));
+    convList.appendChild(item);
+  });
+}
+
+async function handleSend() {
+  const text = input.value.trim();
+  if (!text || isStreaming) return;
+
+  const userMsg = { id: uid(), role: 'user', content: text };
+  messages.push(userMsg);
+  createMessageEl(userMsg);
+  input.value = '';
+  autoResize();
+
+  const history = messages.map(({ role, content }) => ({ role, content }));
+
+  const assistantMsg = { id: uid(), role: 'assistant', content: '', sources: [], modelLabel: null };
+  messages.push(assistantMsg);
+  const { row, bubble } = createMessageEl(assistantMsg);
+  row.classList.add('thinking');
+
+  isStreaming = true;
+  updateSendState();
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: history, conversationId, provider: selectedProvider }),
+    });
+
+    if (res.status === 401) { location.reload(); return; }
+    if (!res.body) throw new Error('No response body');
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let raw = '';
+    let started = false;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      raw += decoder.decode(value);
+
+      const parsed = stripLeadingMarkers(raw);
+      if (parsed.model) assistantMsg.modelLabel = parsed.model;
+      if (parsed.sources) assistantMsg.sources = parsed.sources;
+      if (parsed.pending) continue;
+
+      if (!started && parsed.rest) {
+        row.classList.remove('thinking');
+        row.classList.add('streaming');
+        started = true;
+      }
+
+      assistantMsg.content = parsed.rest;
+      bubble.textContent = parsed.rest;
+      scrollToBottom();
+    }
+
+    row.classList.remove('streaming');
+    bubble.innerHTML = renderModelTag(assistantMsg.modelLabel) + renderSources(assistantMsg.sources) + renderMarkdown(assistantMsg.content);
+    enhanceCodeBlocks(bubble);
+    refreshConversationList(searchInput.value.trim());
+  } catch (err) {
+    row.classList.remove('thinking', 'streaming');
+    assistantMsg.content = 'Something went wrong reaching Lumis AI. Please try again.';
+    bubble.textContent = assistantMsg.content;
+  } finally {
+    isStreaming = false;
+    updateSendState();
+    scrollToBottom();
+  }
+}
+
+input.addEventListener('input', () => { autoResize(); updateSendState(); });
+input.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    handleSend();
+  }
+});
+sendBtn.addEventListener('click', handleSend);
+newChatBtn.addEventListener('click', newChat);
+menuBtn.addEventListener('click', openSidebar);
+closeBtn.addEventListener('click', closeSidebar);
+backdrop.addEventListener('click', closeSidebar);
+
+let searchDebounce;
+searchInput.addEventListener('input', () => {
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(() => refreshConversationList(searchInput.value.trim()), 300);
+});
+
+modelSwitch.addEventListener('click', (e) => {
+  const btn = e.target.closest('.model-opt');
+  if (!btn) return;
+  selectedProvider = btn.dataset.provider;
+  modelSwitch.querySelectorAll('.model-opt').forEach((b) => b.classList.toggle('active', b === btn));
+});
+
+newChat();
+refreshConversationList();
+updateSendState();
+lucide.createIcons();
+</script>
+</body>
+</html>
